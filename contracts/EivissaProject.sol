@@ -68,13 +68,13 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		uint256[3] memory maxSupplies_,
 		uint256[3] memory minPrices_
 	) ERC1155(uri_) {
-		setBaseURI(uri_);
 		usd = usd_;
 		mrc = mrc_;
 		maxSupplies = maxSupplies_;
 		minPrices = minPrices_;
-		addAdmin(msg.sender);
+		isAdmin[msg.sender] = true;
 		whitelist[msg.sender] = true;
+		setBaseURI(uri_);
 	}
 
 	//Note: Mint using USDC
@@ -84,20 +84,22 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		emit mintEvent(to, id, price);
 	}
 
-	function newSale(uint256[3] memory supplies, string memory name) public onlyAdmin {
+	function newSale(uint256[3] memory supplies, string memory name) public onlyAdmin returns(address) {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
+		return address(sale);
 	}
 
-	function newAuction(uint256[3] memory supplies, string memory name) public onlyAdmin {
+	function newAuction(uint256[3] memory supplies, string memory name) public onlyAdmin returns(address) {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
+		return address(auction);
 	}
 
 	function finishSale(uint256 index) public onlyAdmin {

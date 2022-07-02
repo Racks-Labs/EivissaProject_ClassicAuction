@@ -75,6 +75,13 @@ contract Auction {
 		addBidder(msg.sender, price, id);
 	}
 
+	function getRank(uint256 id, address wallet) public view returns(uint256) {
+		for (uint256 i = 0; i < bidders[id].length; ++i)
+			if (bidders[id][i].wallet == wallet)
+				return i;
+		return bidders[id].length;
+	}
+
 	function playPause() public onlyAdmin {
 		paused = !paused;
 	}
