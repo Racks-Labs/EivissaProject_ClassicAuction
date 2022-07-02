@@ -87,7 +87,8 @@ contract MRCRYPTO is ERC721Enumerable, Ownable {
 		require(_mintAmount <= maxMintAmount);
 		require(supply + _mintAmount <= totalMaxSupply);
 
-		if (msg.sender != owner()) require(msg.value >= cost[phase] * _mintAmount, "Not enough value");
+		//if (msg.sender != owner())
+			//require(msg.value >= cost[phase] * _mintAmount, "Not enough value");
 
 		for (uint256 i = 1; i <= _mintAmount; ++i) {
 			_safeMint(msg.sender, supply + i);
@@ -104,13 +105,13 @@ contract MRCRYPTO is ERC721Enumerable, Ownable {
 		require(reservedMints[_tokenId] == false, "Token alredy used to mint at reserved price");
 
 		if (_tokenId <= 1000) {
-			require(msg.value >= cost[0]);
+			//require(msg.value >= cost[0]);
 			require(supply > 999 && supply <= 3999, "Supply is less than 1000");
 
 			_safeMint(msg.sender, supply + 1);
 			reservedMints[_tokenId] = true;
 		} else if (_tokenId <= 4000) {
-			require(msg.value >= cost[1]);
+			//require(msg.value >= cost[1]);
 			require(supply > 3999);
 
 			_safeMint(msg.sender, supply + 1);

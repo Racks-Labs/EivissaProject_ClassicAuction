@@ -18,3 +18,5 @@ In order to deploy and verify a contract use
 npx hardhat run --network rinkeby scripts/run.js
 npx hardhat verify <DEPLOYADDRESS> --network rinkeby "baseURI" "usdcContractAddress" "mrcContractAddress"
 ```
+Warning: set base to 6 decimals in case of using USDC.
+I.e. If using 200$ value should be 200000000.

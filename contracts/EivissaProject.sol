@@ -4,8 +4,11 @@ pragma solidity ^0.8.7;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./DutchAuction.sol";
+import "./Auction.sol";
+import "./Sale.sol";
+import "./IMRC.sol";
 
 //              ▟██████████   █████    ▟███████████   █████████████
 //            ▟████████████   █████  ▟█████████████   █████████████   ███████████▛
@@ -23,13 +26,26 @@ import "./DutchAuction.sol";
 contract EivissaProject is Ownable, ERC1155Supply {
 	bool public paused = true;
 	bool public transferible = true;
+	uint256[3] maxSupplies;
+	uint256[3] minPrices;
 	mapping(address => bool) whitelist;
 	mapping(address => bool) public isAdmin;
+	Sale[] sales;
+	Auction[] auctions;
 	string public baseURI;
+	IMRC mrc;
+	IERC20 usd;
+	uint256[3] royalties;
+	address royaltyWallet;
 
 	modifier isNotPaused() {
 		if (isAdmin[msg.sender] == false)
 			require(paused == false, "Contract is paused");
+		_;
+	}
+
+	modifier isWhitelisted() {
+		require(whitelist[msg.sender] == true);
 		_;
 	}
 
@@ -43,55 +59,67 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		_;
 	}
 
-	modifier onlyHolder() {
-		require(IMRC.balanceOf(msg.sender) > 0, "Only Mr. Crypto holders can mint");
-		_;
-	}
-
-	event sale(address buyer, uint256 id, uint256 price);
+	event mintEvent(address buyer, uint256 id, uint256 price);
 
 	constructor(
 		string memory uri_,
-		address usdc,
-		address mrc
-	) ERC1155(uri_) DutchAuction(usdc, mrc) {
-		addAdmin(msg.sender);
+		IERC20 usd_,
+		IMRC mrc_,
+		uint256[3] memory maxSupplies_,
+		uint256[3] memory minPrices_
+	) ERC1155(uri_) {
+		usd = usd_;
+		mrc = mrc_;
+		maxSupplies = maxSupplies_;
+		minPrices = minPrices_;
+		isAdmin[msg.sender] = true;
+		whitelist[msg.sender] = true;
 		setBaseURI(uri_);
 	}
 
-	function newAuction(uint256 timeInHours, uint256[3] memory auctionSupplies_) public onlyOwner {
-		if (auction == false)
-			auction = true;
-		startAuction(timeInHours, auctionSupplies_);
-	}
-
-	function stopAuction() public onlyAdmin {
-		auction = false;
-	}
-
 	//Note: Mint using USDC
-	function mint(uint256 id) public isNotPaused onlyHolder {
-		require(totalSupply(id) < tickets[id].maxSupply, "There are no tokens left in this id");
-		require(balanceOf(msg.sender, id) < maxPerWallet, "You have reached max amount in this wallet");
+	function mint(address to, uint256 id, uint256 price) public isNotPaused isWhitelisted {
+		require(totalSupply(id) < maxSupplies[id], "There are no tokens left in this id");
+		_mint(to, id, 1, "");
+		emit mintEvent(to, id, price);
+	}
 
-		if (auction == true) {
-			require(whitelist[msg.sender] == true, "You are not whitelisted");
-			require(block.timestamp < finishTimestamp, "Auction has finished");
-			require(totalSupply(id) < auctionSupplies[id], "This id has been sold in this auction");
-		}
+	function newSale(uint256[3] memory supplies, string memory name) public onlyAdmin returns(address) {
+		for (uint256 i = 0; i < 3; ++i)
+			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
+		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
+		sales.push(sale);
+		whitelist[address(sale)] = true;
+		return address(sale);
+	}
 
-		if (msg.sender != owner())
-			USDC.transferFrom(msg.sender, address(this), getPrice(id));
-		_mint(msg.sender, id, 1, "");
-		emit sale(msg.sender, id, getPrice(id));
+	function newAuction(uint256[3] memory supplies, string memory name) public onlyAdmin returns(address) {
+		for (uint256 i = 0; i < 3; ++i)
+			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
+		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
+		auctions.push(auction);
+		whitelist[address(auction)] = true;
+		return address(auction);
+	}
+
+	function finishSale(uint256 index) public onlyAdmin {
+		sales[index].finish();
+	}
+
+	function finishAuction(uint256 index) public onlyAdmin {
+		auctions[index].finish();
+	}
+
+	function currentSales() public view returns(uint256) {
+		return sales.length;
+	}
+
+	function currentAuctions() public view returns(uint256) {
+		return auctions.length;
 	}
 
 	function playPause() public onlyAdmin {
 		paused = !paused;
-	}
-
-	function isWhitelisted(address user) public view returns (bool) {
-		return whitelist[user];
 	}
 
 	function switchTransferible() public onlyOwner {
@@ -125,6 +153,10 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		baseURI = _uri;
 	}
 
+	function setMaxSupplies(uint256[3] memory maxSupplies_) external onlyOwner {
+		maxSupplies = maxSupplies_;
+	}
+
 	function royaltyInfo(uint256 tokenId, uint256 salePrice)
 		external
 		view
@@ -140,7 +172,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	}
 
 	function withdraw() public onlyOwner {
-		USDC.transfer(owner(), USDC.balanceOf(address(this)));
+		usd.transfer(owner(), usd.balanceOf(address(this)));
 	}
 
 	//FUNCTION OVERRIDING
