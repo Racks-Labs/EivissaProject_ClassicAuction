@@ -11,10 +11,10 @@ import "hardhat/console.sol";
 contract Auction {
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
-	Bidder[3][] bidders;
+	Bidder[][3] public bidders;
 	IMRC mrc;
 	IERC20 usd;
-	string name;
+	string public name;
 	bool public paused = true;
 	mapping(address => bool) isAdmin;
 	mapping(address => bool) whitelist;
@@ -64,7 +64,7 @@ contract Auction {
 
 	//PUBLIC
 
-	function bid(uint256 id, uint256 price) public onlyHolder whitelisted {
+	function bid(uint256 id, uint256 price) public isNotPaused onlyHolder whitelisted {
 		require(id < 3, "Invalid index");
 		if (bidders[id].length == maxSupplies[id])
 			require(price > minPrices[id], "Not enough price");
@@ -82,9 +82,9 @@ contract Auction {
 	function finish() public onlyEivissa {
 		for (uint256 id = 0; id < 3; ++id)
 			for (uint256 i = 0; i < bidders[id].length; ++i)
-				eivissa.mint(bidders[id].wallet, id);
+				eivissa.mint(bidders[id][i].wallet, id, bidders[id][i].amount);
 		usd.transfer(address(eivissa), usd.balanceOf(address(this)));
-		selfdestruct(address(eivissa));
+		selfdestruct(payable(address(eivissa)));
 	}
 
 	function addAdmin(address[] memory newOnes) public onlyAdmin {
@@ -113,12 +113,12 @@ contract Auction {
 
 	function addBidder(address newOne, uint256 amount, uint256 id) private {
 		if (bidders[id].length < maxSupplies[id]) {
-			bidders[id].push(Bidder(msg.sender, amount));
+			bidders[id].push(Bidder(newOne, amount));
 		} else {
-			Bidder tmp = Bidder(msg.sender, amount);
+			Bidder memory tmp = Bidder(newOne, amount);
 			for (uint256 i = 0; i < bidders[id].length; ++i) {
 				if (tmp.amount >= bidders[id][i].amount) {
-					Bidder aux = bidders[id][i];
+					Bidder memory aux = bidders[id][i];
 					bidders[id][i] = tmp;
 					tmp = aux;
 				}

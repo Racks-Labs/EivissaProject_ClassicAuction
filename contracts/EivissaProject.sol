@@ -74,20 +74,20 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		maxSupplies = maxSupplies_;
 		minPrices = minPrices_;
 		addAdmin(msg.sender);
-		addToWhitelist(msg.sender);
+		whitelist[msg.sender] = true;
 	}
 
 	//Note: Mint using USDC
-	function mint(uint256 id, uint256 price) public isNotPaused isWhitelisted {
+	function mint(address to, uint256 id, uint256 price) public isNotPaused isWhitelisted {
 		require(totalSupply(id) < maxSupplies[id], "There are no tokens left in this id");
-		_mint(msg.sender, id, 1, "");
-		emit mintEvent(msg.sender, id, price);
+		_mint(to, id, 1, "");
+		emit mintEvent(to, id, price);
 	}
 
 	function newSale(uint256[3] memory supplies, string memory name) public onlyAdmin {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
-		Sale sale = new Sale(address(this), supplies, minPrices, name, mrc, usd, owner());
+		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
 	}
@@ -95,7 +95,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	function newAuction(uint256[3] memory supplies, string memory name) public onlyAdmin {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
-		Auction auction = new Auction(address(this), supplies, minPrices, name, mrc, usd, owner());
+		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
 	}
@@ -132,15 +132,9 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		isAdmin[new_] = false;
 	}
 
-	function addToWhitelist(address[] memory newOnes, bool[] memory isAuction) public onlyAdmin {
-		require(newOnes.length == isAuction.length, "Arrays length do not match");
-		for (uint256 i = 0; i < newOnes.length; ++i) {
+	function addToWhitelist(address[] memory newOnes) public onlyAdmin {
+		for (uint256 i = 0; i < newOnes.length; ++i)
 			whitelist[newOnes[i]] = true;
-			if (isAuction[i] == true)
-				auctions.push(newOnes[i]);
-			else
-				sales.push(newOnes[i]);
-		}
 	}
 
 	function removeFromWhitelist(address[] memory newOnes) public onlyAdmin {
