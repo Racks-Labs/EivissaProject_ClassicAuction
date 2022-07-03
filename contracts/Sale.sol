@@ -31,7 +31,8 @@ contract Sale {
 	}
 
 	modifier whitelisted {
-		require(whitelist[msg.sender] == true, "You are not whitelisted");
+		if (whitelistEnabled = true)
+			require(whitelist[msg.sender] == true, "You are not whitelisted");
 		_;
 	}
 
@@ -103,6 +104,10 @@ contract Sale {
 	function removeFromWhitelist(address[] memory newOnes) public onlyAdmin {
 		for (uint256 i = 0; i < newOnes.length; ++i)
 			whitelist[newOnes[i]] = false;
+	}
+
+	function switchWhitelist() public onlyAdmin {
+		whitelistEnabled = !whitelistEnabled;
 	}
 
 	receive() external payable {}

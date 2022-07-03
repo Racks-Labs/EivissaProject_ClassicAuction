@@ -16,6 +16,7 @@ contract Auction {
 	IERC20 usd;
 	string public name;
 	bool public paused = true;
+	bool public whitelistEnabled = true;
 	mapping(address => bool) isAdmin;
 	mapping(address => bool) whitelist;
 	IEivissaProject eivissa;
@@ -31,7 +32,8 @@ contract Auction {
 	}
 
 	modifier whitelisted {
-		require(whitelist[msg.sender] == true, "You are not whitelisted");
+		if (whitelistEnabled == true)
+			require(whitelist[msg.sender] == true, "You are not whitelisted");
 		_;
 	}
 
@@ -114,6 +116,10 @@ contract Auction {
 	function removeFromWhitelist(address[] memory newOnes) public onlyAdmin {
 		for (uint256 i = 0; i < newOnes.length; ++i)
 			whitelist[newOnes[i]] = false;
+	}
+
+	function switchWhitelist() public onlyAdmin {
+		whitelistEnabled = !whitelistEnabled;
 	}
 
 	//INTERNAL
