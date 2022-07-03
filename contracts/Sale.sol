@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "./EivissaProject.sol";
+import "./IEivissaProject.sol";
 import "./IMRC.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -18,7 +18,7 @@ contract Sale {
 	bool public whitelistEnabled = true;
 	mapping(address => bool) isAdmin;
 	mapping(address => bool) whitelist;
-	EivissaProject eivissa;
+	IEivissaProject eivissa;
 
 	modifier isNotPaused() {
 		require(paused == false, "This sale is not running at the moment");
@@ -45,7 +45,7 @@ contract Sale {
 		_;
 	}
 
-	constructor(EivissaProject eivissa_,
+	constructor(IEivissaProject eivissa_,
 				uint256[3] memory maxSupplies_,
 				uint256[3] memory minPrices_,
 				string memory name_,

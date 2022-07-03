@@ -26,12 +26,12 @@ import "./IMRC.sol";
 contract EivissaProject is Ownable, ERC1155Supply {
 	bool public paused = true;
 	bool public transferible = true;
-	uint256[3] maxSupplies;
-	uint256[3] minPrices;
-	mapping(address => bool) whitelist;
+	uint256[3] public maxSupplies;
+	uint256[3] public minPrices;
+	mapping(address => bool) public whitelist;
 	mapping(address => bool) public isAdmin;
-	Sale[] sales;
-	Auction[] auctions;
+	Sale[] public sales;
+	Auction[] public auctions;
 	string public baseURI;
 	IMRC mrc;
 	IERC20 usd;
