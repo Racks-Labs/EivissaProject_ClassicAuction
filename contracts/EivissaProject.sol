@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Auction.sol";
 import "./Sale.sol";
 import "./IMRC.sol";
+import "./IEivissaProject.sol";
 
 //              ▟██████████   █████    ▟███████████   █████████████
 //            ▟████████████   █████  ▟█████████████   █████████████   ███████████▛
@@ -87,7 +88,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	function newSale(uint256[3] memory supplies, string memory name) public onlyAdmin returns(address) {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
-		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
+		Sale sale = new Sale(IEivissaProject(address(this)), supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
 		return address(sale);
@@ -96,7 +97,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	function newAuction(uint256[3] memory supplies, string memory name) public onlyAdmin returns(address) {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
-		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
+		Auction auction = new Auction(IEivissaProject(address(this)), supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
 		return address(auction);
