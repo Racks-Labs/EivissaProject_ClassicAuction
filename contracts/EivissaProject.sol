@@ -65,8 +65,8 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 
 	constructor(
 		string memory uri_,
-		IERC20 usd_,
 		IMRC mrc_,
+		IERC20 usd_,
 		uint256[3] memory maxSupplies_,
 		uint256[3] memory minPrices_
 	) ERC1155(uri_) {
