@@ -29,7 +29,7 @@ contract Sale {
 	}
 
 	modifier whitelisted {
-		if (whitelistEnabled = true)
+		if (whitelistEnabled == true)
 			require(whitelist[msg.sender] == true, "You are not whitelisted");
 		_;
 	}

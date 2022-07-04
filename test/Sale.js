@@ -26,7 +26,8 @@ describe("EivissaProject Mint Test", async function () {
 			eivissaContract.deployed();
 		});
 		it("Should deploy a sale", async () => {
-			const address = await eivissaContract.newSale([3, 2, 1], "saleee");
+			await eivissaContract.newSale([3, 2, 1], "saleee");
+			const address = await eivissaContract.sales(0);
 
 			const Sale = await ethers.getContractFactory("Sale");
 			saleContract = Sale.attach(address);
@@ -45,29 +46,33 @@ describe("EivissaProject Mint Test", async function () {
 	describe("Minting", () => {
 		it("Should revert", async () => {
 			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("This sale is not running at the moment");
-			(await saleContract.connect(acc1).playPause()).wait();
+			(await saleContract.playPause()).wait();
 
-			await expect(saleContract.connect(acc1).buy(0, 3)).to.be.revertedWith("You are not whitelisted");
-			(await saleContract.connect(acc1).addToWhitelist([acc1.address])).wait();
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("Only holders can do this");
+			(await mrcContract.connect(acc1).mint(1)).wait();
 
-			await expect(saleContract.connect(acc1).buy(0, 3)).to.be.revertedWith("Not enough price");
-			await expect(saleContract.connect(acc1).buy(0, 200)).to.be.revertedWith("ERC20: insufficient allowance");
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("You are not whitelisted");
+			(await saleContract.switchWhitelist()).wait();
+			//const whitelistEnabled = (await saleContract.whitelistEnabled()).toString();
+			//console.log(whitelistEnabled);
+			//(await saleContract.addToWhitelist([acc1.address])).wait();
+
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("ERC20: insufficient allowance");
 			(await usdcContract.connect(acc1).approve(saleContract.address, 800)).wait();
 			(await usdcContract.connect(acc2).approve(saleContract.address, 800)).wait();
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("Contract is paused");
+			(await eivissaContract.playPause()).wait();
 		});
-		/* it("Should buy and override buy", async () => {
-			let transaction = await saleContract.connect(acc1).buy(0, 200);
-			transaction.wait();
-			await saleContract.connect(acc1).bid(0, 200);
-			await saleContract.connect(acc1).bid(0, 200);
-			(await saleContract.connect(acc1).addToWhitelist([acc2.address])).wait();
-			await expect(saleContract.connect(acc2).bid(0, 200)).to.be.revertedWith("Not enough price");
-			await saleContract.connect(acc2).bid(0, 300);
-			assert((await saleContract.getRank(0, acc1.address)) == 1, "Rank should be 1");
-			assert((await saleContract.getRank(0, acc2.address)) == 0, "Rank should be 0");
+		it("Should buy and override buy", async () => {
+			let transaction = await saleContract.connect(acc1).buy(0);
+			const balanceOfAcc1 = await eivissaContract.balanceOf(acc1.address, 0);
+			expect(balanceOfAcc1.toString()).to.be.equal("1");
+
+
 		});
+		/*
 		it("Should revert", async () => {
-			await expect(saleContract.connect(acc1).bid(0, 200)).to.be.revertedWith("Not enough price");
+			await expect(saleContract.connect(acc1).bid(0)).to.be.revertedWith("Not enough price");
 			await expect(saleContract.finish()).to.be.revertedWith("This can only be done from the Eivissa contract");
 		}); */
 	});
