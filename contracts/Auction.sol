@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-//import "./IEivissaProject.sol";
 import "./EivissaProject.sol";
 import "./Bidder.sol";
 import "./IMRC.sol";
