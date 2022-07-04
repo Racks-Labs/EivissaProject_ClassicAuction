@@ -45,6 +45,8 @@ contract Auction {
 		_;
 	}
 
+	event auctionEvent(address sender, uint256 id, uint256 price);
+
 	constructor(EivissaProject eivissa_,
 				uint256[3] memory maxSupplies_,
 				uint256[3] memory minPrices_,
@@ -86,12 +88,12 @@ contract Auction {
 		paused = !paused;
 	}
 
-	function finish() public onlyEivissa {
+	function finish() public onlyAdmin {
 		for (uint256 id = 0; id < 3; ++id)
 			for (uint256 i = 0; i < bidders[id].length; ++i)
-				eivissa.mint(bidders[id][i].wallet, id, bidders[id][i].amount);
+				eivissa.mint(bidders[id][i].wallet, id);
 		usd.transfer(address(eivissa), usd.balanceOf(address(this)));
-		selfdestruct(payable(address(eivissa)));
+		//selfdestruct(payable(address(eivissa)));
 	}
 
 	function addAdmin(address[] memory newOnes) public onlyAdmin {
@@ -135,7 +137,8 @@ contract Auction {
 		if (bidders[id].length < maxSupplies[id]) {
 			bidders[id].push(tmp);
 		} else {
-			minPrices[id] = bidders[id][bidders.length - 1].amount;
+			uint256 increment = (bidders[id][bidders.length - 1].amount * 5 / 100);
+			minPrices[id] = bidders[id][bidders.length - 1].amount + increment;
 			usd.transfer(tmp.wallet, tmp.amount);
 		}
 	}

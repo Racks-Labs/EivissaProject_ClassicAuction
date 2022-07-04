@@ -58,9 +58,8 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		_;
 	}
 
-	event mintEvent(address buyer, uint256 id, uint256 price);
-	event auctionEvent(address);
-	event saleEvent(address);
+	event newAuctionEvent(address);
+	event newSaleEvent(address);
 
 	constructor(
 		string memory uri_,
@@ -79,10 +78,9 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	}
 
 	//Note: Mint using USDC
-	function mint(address to, uint256 id, uint256 price) public isNotPaused isWhitelisted {
+	function mint(address to, uint256 id) public isNotPaused isWhitelisted {
 		require(totalSupply(id) < maxSupplies[id], "Id no tokens left");
 		_mint(to, id, 1, "");
-		emit mintEvent(to, id, price);
 	}
 
 	function newSale(uint256[3] memory supplies, string memory name) external onlyAdmin {
@@ -91,7 +89,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
-		emit saleEvent(address(sale));
+		emit newSaleEvent(address(sale));
 	}
 
 	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin {
@@ -100,7 +98,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
-		emit auctionEvent(address(auction));
+		emit newAuctionEvent(address(auction));
 	}
 
 	function finishSale(uint256 index) public onlyAdmin {

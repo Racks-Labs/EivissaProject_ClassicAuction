@@ -45,6 +45,8 @@ contract Sale {
 		_;
 	}
 
+	event saleEvent(address sender, uint256 id);
+
 	constructor(EivissaProject eivissa_,
 				uint256[3] memory maxSupplies_,
 				uint256[3] memory minPrices_,
@@ -73,16 +75,17 @@ contract Sale {
 		++(currentSupply[id]);
 
 		userMints[msg.sender] = true;
-		eivissa.mint(msg.sender, id, minPrices[id]);
+		eivissa.mint(msg.sender, id);
+		emit saleEvent(msg.sender, id);
 	}
 
 	function playPause() public onlyAdmin {
 		paused = !paused;
 	}
 
-	function finish() public onlyEivissa {
+	function finish() public onlyAdmin {
 		usd.transfer(address(eivissa), usd.balanceOf(address(this)));
-		selfdestruct(payable(address(eivissa)));
+		//selfdestruct(payable(address(eivissa)));
 	}
 
 	function addAdmin(address[] memory newOnes) public onlyAdmin {
