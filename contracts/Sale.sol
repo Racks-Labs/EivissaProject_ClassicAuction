@@ -75,7 +75,7 @@ contract Sale {
 		++(currentSupply[id]);
 
 		userMints[msg.sender] = true;
-		eivissa.mint(msg.sender, id);
+		eivissa.mint(msg.sender, id, 1);
 		emit saleEvent(msg.sender, id);
 	}
 

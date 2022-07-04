@@ -17,7 +17,9 @@ contract Auction {
 	bool public whitelistEnabled = true;
 	mapping(address => bool) public isAdmin;
 	mapping(address => bool) public whitelist;
+	mapping(address => uint256[3]) claimable;
 	EivissaProject eivissa;
+	bool public finished = false;
 
 	modifier isNotPaused() {
 		require(paused == false, "Paused");
@@ -67,11 +69,9 @@ contract Auction {
 	//PUBLIC
 
 	function bid(uint256 id, uint256 price) public isNotPaused onlyHolder whitelisted {
+		require(finished == false, "Has finished");
 		require(id < 3, "Invalid index");
-		if (bidders[id].length == maxSupplies[id])
-			require(price > minPrices[id], "Price");
-		else
-			require(price >= minPrices[id], "Price");
+		require(price >= minPrices[id], "Price");
 
 		usd.transferFrom(msg.sender, address(this), price);
 		addBidder(msg.sender, price, id);
@@ -89,11 +89,21 @@ contract Auction {
 	}
 
 	function finish() public onlyAdmin {
-		for (uint256 id = 0; id < 3; ++id)
+		/* for (uint256 id = 0; id < 3; ++id)
 			for (uint256 i = 0; i < bidders[id].length; ++i)
 				eivissa.mint(bidders[id][i].wallet, id);
 		usd.transfer(address(eivissa), usd.balanceOf(address(this)));
-		//selfdestruct(payable(address(eivissa)));
+		selfdestruct(payable(address(eivissa))); */
+		finished = !finished;
+	}
+
+	function claim(uint256 id) public {
+		uint256 claimableNum = claimable[msg.sender][id];
+
+		require(finished == true, "Not finished");
+		require(claimableNum > 0, "No left");
+		claimable[msg.sender][id] = 0;
+		eivissa.mint(msg.sender, id, claimableNum);
 	}
 
 	function addAdmin(address[] memory newOnes) public onlyAdmin {
@@ -125,6 +135,7 @@ contract Auction {
 	//INTERNAL
 
 	function addBidder(address newOne, uint256 amount, uint256 id) private {
+		claimable[msg.sender][id] += 1;
 		Bidder memory tmp = Bidder(newOne, amount);
 		for (uint256 i = 0; i < bidders[id].length; ++i) {
 			if (tmp.amount >= bidders[id][i].amount) {
@@ -139,6 +150,7 @@ contract Auction {
 		} else {
 			uint256 increment = (bidders[id][bidders.length - 1].amount * 5 / 100);
 			minPrices[id] = bidders[id][bidders.length - 1].amount + increment;
+			claimable[tmp.wallet][id] -= 1;
 			usd.transfer(tmp.wallet, tmp.amount);
 		}
 	}

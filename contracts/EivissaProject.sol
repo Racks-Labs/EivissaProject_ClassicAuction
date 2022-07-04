@@ -78,9 +78,9 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	}
 
 	//Note: Mint using USDC
-	function mint(address to, uint256 id) public isNotPaused isWhitelisted {
+	function mint(address to, uint256 id, uint256 amount) public isNotPaused isWhitelisted {
 		require(totalSupply(id) < maxSupplies[id], "Id no tokens left");
-		_mint(to, id, 1, "");
+		_mint(to, id, amount, "");
 	}
 
 	function newSale(uint256[3] memory supplies, string memory name) external onlyAdmin {
