@@ -12,14 +12,14 @@ contract Auction {
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
 	Bidder[][3] public bidders;
-	IMRC mrc;
-	IERC20 usd;
+	IMRC public mrc;
+	IERC20 public usd;
 	string public name;
 	bool public paused = true;
 	bool public whitelistEnabled = true;
 	mapping(address => bool) public isAdmin;
 	mapping(address => bool) public whitelist;
-	IEivissaProject eivissa;
+	IEivissaProject public eivissa;
 
 	modifier isNotPaused() {
 		require(paused == false, "This auction is not running at the moment");
