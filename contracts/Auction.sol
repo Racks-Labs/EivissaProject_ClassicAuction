@@ -89,10 +89,6 @@ contract Auction {
 	}
 
 	function finish() public onlyAdmin {
-		/* for (uint256 id = 0; id < 3; ++id)
-			for (uint256 i = 0; i < bidders[id].length; ++i)
-				eivissa.mint(bidders[id][i].wallet, id);
-		selfdestruct(payable(address(eivissa))); */
 		finished = !finished;
 		usd.transfer(address(eivissa), usd.balanceOf(address(this)));
 	}
