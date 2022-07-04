@@ -123,21 +123,21 @@ contract Auction {
 	//INTERNAL
 
 	function addBidder(address newOne, uint256 amount, uint256 id) private {
-		if (bidders[id].length < maxSupplies[id]) {
-			bidders[id].push(Bidder(newOne, amount));
-		} else {
-			Bidder memory tmp = Bidder(newOne, amount);
-			for (uint256 i = 0; i < bidders[id].length; ++i) {
-				if (tmp.amount >= bidders[id][i].amount) {
-					Bidder memory aux = bidders[id][i];
-					bidders[id][i] = tmp;
-					tmp = aux;
-				}
+		Bidder memory tmp = Bidder(newOne, amount);
+		for (uint256 i = 0; i < bidders[id].length; ++i) {
+			if (tmp.amount >= bidders[id][i].amount) {
+				Bidder memory aux = bidders[id][i];
+				bidders[id][i] = tmp;
+				tmp = aux;
 			}
+		}
+
+		if (bidders[id].length < maxSupplies[id]) {
+			bidders[id].push(tmp);
+		} else {
+			minPrices[id] = bidders[id][bidders.length - 1].amount;
 			usd.transfer(tmp.wallet, tmp.amount);
 		}
-		if (bidders[id].length == maxSupplies[id])
-			minPrices[id] = bidders[id][bidders.length - 1].amount;
 	}
 
 	receive() external payable {}
