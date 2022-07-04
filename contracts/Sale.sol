@@ -1,11 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "./EivissaProject.sol";
+import "./IEivissaProject.sol";
 import "./IMRC.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-import "hardhat/console.sol";
 
 contract Sale {
 	uint256[3] public currentSupply;
@@ -13,12 +11,12 @@ contract Sale {
 	uint256[3] public minPrices;
 	IMRC mrc;
 	IERC20 usd;
-	string name;
+	string public name;
 	bool public paused = true;
 	bool public whitelistEnabled = true;
-	mapping(address => bool) isAdmin;
-	mapping(address => bool) whitelist;
-	EivissaProject eivissa;
+	mapping(address => bool) public isAdmin;
+	mapping(address => bool) public whitelist;
+	IEivissaProject eivissa;
 
 	modifier isNotPaused() {
 		require(paused == false, "This sale is not running at the moment");
@@ -31,7 +29,8 @@ contract Sale {
 	}
 
 	modifier whitelisted {
-		require(whitelist[msg.sender] == true, "You are not whitelisted");
+		if (whitelistEnabled == true)
+			require(whitelist[msg.sender] == true, "You are not whitelisted");
 		_;
 	}
 
@@ -45,7 +44,7 @@ contract Sale {
 		_;
 	}
 
-	constructor(EivissaProject eivissa_,
+	constructor(IEivissaProject eivissa_,
 				uint256[3] memory maxSupplies_,
 				uint256[3] memory minPrices_,
 				string memory name_,
@@ -64,14 +63,13 @@ contract Sale {
 
 	//PUBLIC
 
-	function buy(uint256 id, uint256 price) public isNotPaused onlyHolder whitelisted {
+	function buy(uint256 id) public isNotPaused onlyHolder whitelisted {
 		require(id < 3, "Invalid index");
-		require(price >= minPrices[id], "Not enough price");
 		require(currentSupply[id] < maxSupplies[id]);
 
-		usd.transferFrom(msg.sender, address(eivissa), price);
+		usd.transferFrom(msg.sender, address(eivissa), minPrices[id]);
 		++(currentSupply[id]);
-		eivissa.mint(msg.sender, id, price);
+		eivissa.mint(msg.sender, id, minPrices[id]);
 	}
 
 	function playPause() public onlyAdmin {
@@ -103,6 +101,10 @@ contract Sale {
 	function removeFromWhitelist(address[] memory newOnes) public onlyAdmin {
 		for (uint256 i = 0; i < newOnes.length; ++i)
 			whitelist[newOnes[i]] = false;
+	}
+
+	function switchWhitelist() public onlyAdmin {
+		whitelistEnabled = !whitelistEnabled;
 	}
 
 	receive() external payable {}

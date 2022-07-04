@@ -1,12 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "./EivissaProject.sol";
+import "./IEivissaProject.sol";
 import "./Bidder.sol";
 import "./IMRC.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-import "hardhat/console.sol";
 
 contract Auction {
 	uint256[3] public maxSupplies;
@@ -16,9 +14,10 @@ contract Auction {
 	IERC20 usd;
 	string public name;
 	bool public paused = true;
-	mapping(address => bool) isAdmin;
-	mapping(address => bool) whitelist;
-	EivissaProject eivissa;
+	bool public whitelistEnabled = true;
+	mapping(address => bool) public isAdmin;
+	mapping(address => bool) public whitelist;
+	IEivissaProject eivissa;
 
 	modifier isNotPaused() {
 		require(paused == false, "This auction is not running at the moment");
@@ -31,7 +30,8 @@ contract Auction {
 	}
 
 	modifier whitelisted {
-		require(whitelist[msg.sender] == true, "You are not whitelisted");
+		if (whitelistEnabled == true)
+			require(whitelist[msg.sender] == true, "You are not whitelisted");
 		_;
 	}
 
@@ -45,7 +45,7 @@ contract Auction {
 		_;
 	}
 
-	constructor(EivissaProject eivissa_,
+	constructor(IEivissaProject eivissa_,
 				uint256[3] memory maxSupplies_,
 				uint256[3] memory minPrices_,
 				string memory name_,
@@ -116,6 +116,10 @@ contract Auction {
 			whitelist[newOnes[i]] = false;
 	}
 
+	function switchWhitelist() public onlyAdmin {
+		whitelistEnabled = !whitelistEnabled;
+	}
+
 	//INTERNAL
 
 	function addBidder(address newOne, uint256 amount, uint256 id) private {
@@ -132,8 +136,7 @@ contract Auction {
 			}
 			usd.transfer(tmp.wallet, tmp.amount);
 		}
-		if (bidders[id].length == maxSupplies[id])
-			minPrices[id] = amount;
+		minPrices[id] = bidders[id][bidders.length - 1].amount;
 	}
 
 	receive() external payable {}

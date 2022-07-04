@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -9,6 +8,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Auction.sol";
 import "./Sale.sol";
 import "./IMRC.sol";
+import "./IEivissaProject.sol";
 
 //              ▟██████████   █████    ▟███████████   █████████████
 //            ▟████████████   █████  ▟█████████████   █████████████   ███████████▛
@@ -23,15 +23,15 @@ import "./IMRC.sol";
 //                          ▜██████▙        ▟██████▛            │  LABS  │
 //                                                              └────────┘
 
-contract EivissaProject is Ownable, ERC1155Supply {
+contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	bool public paused = true;
 	bool public transferible = true;
-	uint256[3] maxSupplies;
-	uint256[3] minPrices;
-	mapping(address => bool) whitelist;
+	uint256[3] public maxSupplies;
+	uint256[3] public minPrices;
+	mapping(address => bool) public whitelist;
 	mapping(address => bool) public isAdmin;
-	Sale[] sales;
-	Auction[] auctions;
+	Sale[] public sales;
+	Auction[] public auctions;
 	string public baseURI;
 	IMRC mrc;
 	IERC20 usd;
@@ -78,13 +78,13 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	}
 
 	//Note: Mint using USDC
-	function mint(address to, uint256 id, uint256 price) public isNotPaused isWhitelisted {
+	function mint(address to, uint256 id, uint256 price) public override isNotPaused isWhitelisted {
 		require(totalSupply(id) < maxSupplies[id], "There are no tokens left in this id");
 		_mint(to, id, 1, "");
 		emit mintEvent(to, id, price);
 	}
 
-	function newSale(uint256[3] memory supplies, string memory name) public onlyAdmin returns(address) {
+	function newSale(uint256[3] memory supplies, string memory name) external onlyAdmin returns(address) {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
@@ -93,7 +93,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		return address(sale);
 	}
 
-	function newAuction(uint256[3] memory supplies, string memory name) public onlyAdmin returns(address) {
+	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin returns(address) {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
