@@ -65,14 +65,13 @@ contract Sale {
 
 	//PUBLIC
 
-	function buy(uint256 id, uint256 price) public isNotPaused onlyHolder whitelisted {
+	function buy(uint256 id) public isNotPaused onlyHolder whitelisted {
 		require(id < 3, "Invalid index");
-		require(price >= minPrices[id], "Not enough price");
 		require(currentSupply[id] < maxSupplies[id]);
 
-		usd.transferFrom(msg.sender, address(eivissa), price);
+		usd.transferFrom(msg.sender, address(eivissa), minPrices[id]);
 		++(currentSupply[id]);
-		eivissa.mint(msg.sender, id, price);
+		eivissa.mint(msg.sender, id, minPrices[id]);
 	}
 
 	function playPause() public onlyAdmin {
