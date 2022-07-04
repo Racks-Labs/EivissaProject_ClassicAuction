@@ -60,6 +60,8 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	}
 
 	event mintEvent(address buyer, uint256 id, uint256 price);
+	event auctionEvent(address);
+	event saleEvent(address);
 
 	constructor(
 		string memory uri_,
@@ -84,22 +86,22 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		emit mintEvent(to, id, price);
 	}
 
-	function newSale(uint256[3] memory supplies, string memory name) external onlyAdmin returns(address) {
+	function newSale(uint256[3] memory supplies, string memory name) external onlyAdmin {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "Exceeds MaxSupply");
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
-		return address(sale);
+		emit saleEvent(address(sale));
 	}
 
-	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin returns(address) {
+	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin {
 		for (uint256 i = 0; i < 3; ++i)
 			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "Exceeds MaxSupply");
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
-		return address(auction);
+		emit auctionEvent(address(auction));
 	}
 
 	function finishSale(uint256 index) public onlyAdmin {
