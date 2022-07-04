@@ -20,28 +20,28 @@ contract Auction {
 	IEivissaProject eivissa;
 
 	modifier isNotPaused() {
-		require(paused == false, "This auction is not running at the moment");
+		require(paused == false, "Paused");
 		_;
 	}
 
 	modifier onlyAdmin {
-		require(isAdmin[msg.sender] == true, "Only admins can do this");
+		require(isAdmin[msg.sender] == true, "Only Admins");
 		_;
 	}
 
 	modifier whitelisted {
 		if (whitelistEnabled == true)
-			require(whitelist[msg.sender] == true, "You are not whitelisted");
+			require(whitelist[msg.sender] == true, "Whitelist");
 		_;
 	}
 
 	modifier onlyHolder {
-		require(mrc.balanceOf(msg.sender) > 0 || isAdmin[msg.sender] == true, "Only holders can do this");
+		require(mrc.balanceOf(msg.sender) > 0 || isAdmin[msg.sender] == true, "Only Holders");
 		_;
 	}
 
 	modifier onlyEivissa {
-		require(msg.sender == address(eivissa), "This can only be done from the Eivissa contract");
+		require(msg.sender == address(eivissa), "Only Eivissa");
 		_;
 	}
 
@@ -67,9 +67,9 @@ contract Auction {
 	function bid(uint256 id, uint256 price) public isNotPaused onlyHolder whitelisted {
 		require(id < 3, "Invalid index");
 		if (bidders[id].length == maxSupplies[id])
-			require(price > minPrices[id], "Not enough price");
+			require(price > minPrices[id], "Price");
 		else
-			require(price >= minPrices[id], "Not enough price");
+			require(price >= minPrices[id], "Price");
 
 		usd.transferFrom(msg.sender, address(this), price);
 		addBidder(msg.sender, price, id);

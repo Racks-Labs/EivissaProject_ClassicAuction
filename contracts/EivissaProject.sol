@@ -79,14 +79,14 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 
 	//Note: Mint using USDC
 	function mint(address to, uint256 id, uint256 price) public override isNotPaused isWhitelisted {
-		require(totalSupply(id) < maxSupplies[id], "There are no tokens left in this id");
+		require(totalSupply(id) < maxSupplies[id], "Id no tokens left");
 		_mint(to, id, 1, "");
 		emit mintEvent(to, id, price);
 	}
 
 	function newSale(uint256[3] memory supplies, string memory name) external onlyAdmin returns(address) {
 		for (uint256 i = 0; i < 3; ++i)
-			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
+			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "Exceeds MaxSupply");
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
@@ -95,7 +95,7 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 
 	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin returns(address) {
 		for (uint256 i = 0; i < 3; ++i)
-			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
+			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "Exceeds MaxSupply");
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;

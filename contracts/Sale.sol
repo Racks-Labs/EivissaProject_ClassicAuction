@@ -16,31 +16,32 @@ contract Sale {
 	bool public whitelistEnabled = true;
 	mapping(address => bool) public isAdmin;
 	mapping(address => bool) public whitelist;
+	mapping(address => bool) userMints;
 	IEivissaProject eivissa;
 
 	modifier isNotPaused() {
-		require(paused == false, "This sale is not running at the moment");
+		require(paused == false, "Paused");
 		_;
 	}
 
 	modifier onlyAdmin {
-		require(isAdmin[msg.sender] == true, "Only admins can do this");
+		require(isAdmin[msg.sender] == true, "Only Admins");
 		_;
 	}
 
 	modifier whitelisted {
 		if (whitelistEnabled == true)
-			require(whitelist[msg.sender] == true, "You are not whitelisted");
+			require(whitelist[msg.sender] == true, "Whitelist");
 		_;
 	}
 
 	modifier onlyHolder {
-		require(mrc.balanceOf(msg.sender) > 0 || isAdmin[msg.sender] == true, "Only holders can do this");
+		require(mrc.balanceOf(msg.sender) > 0 || isAdmin[msg.sender] == true, "Only Holders");
 		_;
 	}
 
 	modifier onlyEivissa {
-		require(msg.sender == address(eivissa), "This can only be done from the Eivissa contract");
+		require(msg.sender == address(eivissa), "Only Eivissa");
 		_;
 	}
 
@@ -66,9 +67,12 @@ contract Sale {
 	function buy(uint256 id) public isNotPaused onlyHolder whitelisted {
 		require(id < 3, "Invalid index");
 		require(currentSupply[id] < maxSupplies[id]);
+		require(userMints[msg.sender] == false);
 
 		usd.transferFrom(msg.sender, address(eivissa), minPrices[id]);
 		++(currentSupply[id]);
+
+		userMints[msg.sender] = true;
 		eivissa.mint(msg.sender, id, minPrices[id]);
 	}
 
