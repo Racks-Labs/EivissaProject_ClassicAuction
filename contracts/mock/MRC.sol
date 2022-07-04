@@ -79,7 +79,6 @@ contract MRCRYPTO is ERC721Enumerable, Ownable {
 	// public
 	function mint(uint256 _mintAmount) public payable {
 		uint256 supply = totalSupply();
-		uint256 phase = checkPhase(supply);
 
 		require(!paused);
 		if (whitelistOn == true) require(isWhitelisted[msg.sender] || msg.sender == owner());
