@@ -17,8 +17,8 @@ contract Auction {
 	string public name;
 	bool public paused = true;
 	bool public whitelistEnabled = true;
-	mapping(address => bool) isAdmin;
-	mapping(address => bool) whitelist;
+	mapping(address => bool) public isAdmin;
+	mapping(address => bool) public whitelist;
 	IEivissaProject eivissa;
 
 	modifier isNotPaused() {
