@@ -136,7 +136,8 @@ contract Auction {
 			}
 			usd.transfer(tmp.wallet, tmp.amount);
 		}
-		minPrices[id] = bidders[id][bidders.length - 1].amount;
+		if (bidders[id].length == maxSupplies[id])
+			minPrices[id] = bidders[id][bidders.length - 1].amount;
 	}
 
 	receive() external payable {}
