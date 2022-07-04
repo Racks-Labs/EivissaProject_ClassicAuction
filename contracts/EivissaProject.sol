@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Auction.sol";
 import "./Sale.sol";
 import "./IMRC.sol";
-import "./IEivissaProject.sol";
+//import "./IEivissaProject.sol";
 
 //              ▟██████████   █████    ▟███████████   █████████████
 //            ▟████████████   █████  ▟█████████████   █████████████   ███████████▛
@@ -23,7 +23,7 @@ import "./IEivissaProject.sol";
 //                          ▜██████▙        ▟██████▛            │  LABS  │
 //                                                              └────────┘
 
-contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
+contract EivissaProject is Ownable, ERC1155Supply {
 	bool public paused = true;
 	bool public transferible = true;
 	uint256[3] public maxSupplies;
@@ -80,7 +80,7 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	}
 
 	//Note: Mint using USDC
-	function mint(address to, uint256 id, uint256 price) public override isNotPaused isWhitelisted {
+	function mint(address to, uint256 id, uint256 price) public isNotPaused isWhitelisted {
 		require(totalSupply(id) < maxSupplies[id], "Id no tokens left");
 		_mint(to, id, 1, "");
 		emit mintEvent(to, id, price);
