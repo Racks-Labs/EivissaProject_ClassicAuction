@@ -2,7 +2,7 @@ const { expect, assert } = require("chai");
 const { ethers } = require("hardhat");
 const { sleep, moveBlocks } = require("../utils/move-blocks");
 
-describe("EivissaProject Mint Test", async function () {
+describe("Auction Test", async function () {
 	let auctionContract, eivissaContract;
 	let usdcContract, mrcContract;
 	let deployer, acc1, acc2, addrs;

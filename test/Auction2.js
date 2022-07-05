@@ -4,7 +4,7 @@ const { isCallTrace } = require("hardhat/internal/hardhat-network/stack-traces/m
 const { handleRemainingComment } = require("prettier-plugin-solidity/src/comments/handler");
 const { sleep, moveBlocks } = require("../utils/move-blocks");
 
-describe("EivissaProject Mint Test", async function () {
+describe("Auction2 Test", async function () {
 	let auctionContract, eivissaContract, saleContract;
 	let usdc, mrc;
 	let deployer, acc1, acc2, addrs;
