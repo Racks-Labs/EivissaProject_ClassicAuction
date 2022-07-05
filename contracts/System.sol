@@ -26,7 +26,6 @@ contract System {
 	}
 
 	modifier onlyAdmin() {
-		//require(isAdmin[msg.sender] == true, "adminErr");
 		if (isAdmin[msg.sender] == false)
 			revert ("adminErr");
 		_;
@@ -97,11 +96,4 @@ contract System {
 	function switchWhitelist() public onlyAdmin {
 		whitelistEnabled = !whitelistEnabled;
 	}
-
-	function withdraw() public onlyAdmin {
-		(bool success, ) = address(eivissa).call{value: address(this).balance}("");
-		require(success, "transaction failed");
-	}
-
-	receive() external payable {}
 }
