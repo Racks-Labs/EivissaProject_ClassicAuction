@@ -1,36 +1,39 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "./EivissaProject.sol";
+/* import "./IEivissaProject.sol";
 import "./Err.sol";
-import "./Bidder.sol";
 import "./IMRC.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol"; */
+import "./System.sol";
+import "./Bidder.sol";
 
 
-contract Auction {
-	uint256[3] public maxSupplies;
-	uint256[3] public minPrices;
+contract Auction is System {
 	Bidder[][3] public bidders;
+	/* uint256[3] public maxSupplies;
+	uint256[3] public minPrices;
 	IMRC mrc;
 	IERC20 usd;
 	string public name;
 	bool public paused = true;
 	bool public whitelistEnabled = true;
-	mapping(address => bool) public isAdmin;
-	mapping(address => bool) public whitelist;
-	mapping(address => uint256[3]) claimable;
-	EivissaProject eivissa;
 	bool public finished = false;
+	mapping(address => bool) public isAdmin;
+	mapping(address => bool) public whitelist; */
+	mapping(address => uint256[3]) claimable;
+	//IEivissaProject eivissa;
 
-	modifier isNotPaused() {
+	/* modifier isNotPaused() {
 		if (isAdmin[msg.sender] == false && paused == true)
 			revert pausedErr();
 		_;
 	}
 
 	modifier onlyAdmin() {
-		require(isAdmin[msg.sender] == true, "adminErr");
+		//require(isAdmin[msg.sender] == true, "adminErr");
+		if (isAdmin[msg.sender] == false)
+			revert adminErr();
 		_;
 	}
 
@@ -44,25 +47,32 @@ contract Auction {
 		if (mrc.balanceOf(msg.sender) == 0 && isAdmin[msg.sender] == false)
 			revert holderErr();
 		_;
-	}
+	} */
 
 	event auctionEvent(address sender, uint256 id, uint256 price);
 
-	constructor(EivissaProject eivissa_,
+	constructor(IEivissaProject eivissa_,
 				uint256[3] memory maxSupplies_,
 				uint256[3] memory minPrices_,
 				string memory name_,
 				IMRC mrc_,
 				IERC20 usd_,
-				address newAdmin) {
-		eivissa = eivissa_;
+				address newAdmin) System(
+					eivissa_,
+					maxSupplies_,
+					minPrices_,
+					name_,
+					mrc_,
+					usd_,
+					newAdmin) {
+		/* eivissa = eivissa_;
 		maxSupplies = maxSupplies_;
 		minPrices = minPrices_;
 		mrc = mrc_;
 		usd = usd_;
 		name = name_;
 		isAdmin[address(eivissa)] = true;
-		isAdmin[newAdmin] = true;
+		isAdmin[newAdmin] = true; */
 	}
 
 	//PUBLIC
@@ -83,14 +93,14 @@ contract Auction {
 		return bidders[id].length;
 	}
 
-	function playPause() public onlyAdmin {
+	/* function playPause() public onlyAdmin {
 		paused = !paused;
 	}
 
 	function finish() public onlyAdmin {
 		finished = !finished;
 		usd.transfer(address(eivissa), usd.balanceOf(address(this)));
-	}
+	} */
 
 	function claim(uint256 id) public {
 		uint256 claimableNum = claimable[msg.sender][id];
@@ -101,7 +111,7 @@ contract Auction {
 		eivissa.mint(msg.sender, id, claimableNum);
 	}
 
-	function addAdmin(address[] memory newOnes) public onlyAdmin {
+	/* function addAdmin(address[] memory newOnes) public onlyAdmin {
 		for (uint256 i = 0; i < newOnes.length; ++i)
 			isAdmin[newOnes[i]] = true;
 	}
@@ -125,7 +135,7 @@ contract Auction {
 
 	function switchWhitelist() public onlyAdmin {
 		whitelistEnabled = !whitelistEnabled;
-	}
+	} */
 
 	//INTERNAL
 
@@ -150,5 +160,5 @@ contract Auction {
 		}
 	}
 
-	receive() external payable {}
+	//receive() external payable {}
 }

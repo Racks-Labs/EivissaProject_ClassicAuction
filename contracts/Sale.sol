@@ -1,19 +1,21 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "./EivissaProject.sol";
+/* import "./IEivissaProject.sol";
 import "./Err.sol";
 import "./IMRC.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol"; */
+
+import "./System.sol";
 
 	/* error Sale_pausedErr();
 	error Sale_whitelistErr();
 	error Sale_adminErr();
 	error Sale_holderErr(); */
 
-contract Sale {
+contract Sale is System {
 	uint256[3] public currentSupply;
-	uint256[3] public maxSupplies;
+	/* uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
 	IMRC mrc;
 	IERC20 usd;
@@ -21,11 +23,11 @@ contract Sale {
 	bool public paused = true;
 	bool public whitelistEnabled = true;
 	mapping(address => bool) public isAdmin;
-	mapping(address => bool) public whitelist;
+	mapping(address => bool) public whitelist; */
 	mapping(address => bool) userMints;
-	EivissaProject eivissa;
+	//IEivissaProject eivissa;
 
-	modifier isNotPaused() {
+	/* modifier isNotPaused() {
 		if (isAdmin[msg.sender] == false && paused == true)
 			revert pausedErr();
 		_;
@@ -47,27 +49,35 @@ contract Sale {
 		if (mrc.balanceOf(msg.sender) == 0 && isAdmin[msg.sender] == false)
 			revert holderErr();
 		_;
-	}
+	} */
 
 
 
 	event saleEvent(address sender, uint256 id);
 
-	constructor(EivissaProject eivissa_,
+	constructor(IEivissaProject eivissa_,
 				uint256[3] memory maxSupplies_,
 				uint256[3] memory minPrices_,
 				string memory name_,
 				IMRC mrc_,
 				IERC20 usd_,
-				address newAdmin) {
-		eivissa = eivissa_;
+				address newAdmin) System(
+					eivissa_,
+					maxSupplies_,
+					minPrices_,
+					name_,
+					mrc_,
+					usd_,
+					newAdmin
+				) {
+		/* eivissa = eivissa_;
 		maxSupplies = maxSupplies_;
 		minPrices = minPrices_;
 		mrc = mrc_;
 		usd = usd_;
 		name = name_;
 		isAdmin[address(eivissa)] = true;
-		isAdmin[newAdmin] = true;
+		isAdmin[newAdmin] = true; */
 	}
 
 	//PUBLIC
@@ -85,7 +95,7 @@ contract Sale {
 		emit saleEvent(msg.sender, id);
 	}
 
-	function playPause() public onlyAdmin {
+	/* function playPause() public onlyAdmin {
 		paused = !paused;
 	}
 
@@ -118,7 +128,7 @@ contract Sale {
 
 	function switchWhitelist() public onlyAdmin {
 		whitelistEnabled = !whitelistEnabled;
-	}
+	} */
 
-	receive() external payable {}
+	//receive() external payable {}
 }

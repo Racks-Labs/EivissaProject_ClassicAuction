@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./IEivissaProject.sol";
 import "./Auction.sol";
 import "./Sale.sol";
 import "./IMRC.sol";
@@ -23,7 +24,7 @@ import "./Err.sol";
 //                          ▜██████▙        ▟██████▛            │  LABS  │
 //                                                              └────────┘
 
-contract EivissaProject is Ownable, ERC1155Supply {
+contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	address royaltyWallet;
 	uint256[3] royalties;
 	uint256[3] public maxSupplies;
@@ -82,7 +83,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	}
 
 	//Note: Mint using USDC
-	function mint(address to, uint256 id, uint256 amount) public isNotPaused isWhitelisted {
+	function mint(address to, uint256 id, uint256 amount) public override isNotPaused isWhitelisted {
 		require(totalSupply(id) < maxSupplies[id], "Id no tokens left");
 		_mint(to, id, amount, "");
 	}
