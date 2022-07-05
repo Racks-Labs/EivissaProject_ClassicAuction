@@ -48,6 +48,10 @@ contract Auction is System {
 		return bidders[id].length;
 	}
 
+	function biddersAmount(uint256 id) public view returns(uint256) {
+		return bidders[id].length;
+	}
+
 	function claim(uint256 id) public {
 		uint256 claimableNum = claimable[msg.sender][id];
 
