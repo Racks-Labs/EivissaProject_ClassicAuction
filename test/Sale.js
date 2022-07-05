@@ -22,7 +22,7 @@ describe("EivissaProject Mint Test", async function () {
 			(await mrcContract.setWhitelistPhase()).wait();
 
 			const Eivissa = await ethers.getContractFactory("EivissaProject");
-			eivissaContract = await Eivissa.deploy("uri/", usdcContract.address, mrcContract.address, [6, 4, 2], [200, 500, 1000]);
+			eivissaContract = await Eivissa.deploy("uri/", mrcContract.address, usdcContract.address, [6, 4, 2], [200, 500, 1000]);
 			eivissaContract.deployed();
 		});
 		it("Should deploy a sale", async () => {
@@ -45,13 +45,13 @@ describe("EivissaProject Mint Test", async function () {
 
 	describe("Minting", () => {
 		it("Should revert", async () => {
-			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("This sale is not running at the moment");
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("pausedErr");
 			(await saleContract.playPause()).wait();
 
-			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("Only holders can do this");
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("holderErr");
 			(await mrcContract.connect(acc1).mint(1)).wait();
 
-			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("You are not whitelisted");
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("whitelistErr");
 			(await saleContract.switchWhitelist()).wait();
 			//const whitelistEnabled = (await saleContract.whitelistEnabled()).toString();
 			//console.log(whitelistEnabled);
@@ -60,7 +60,7 @@ describe("EivissaProject Mint Test", async function () {
 			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("ERC20: insufficient allowance");
 			(await usdcContract.connect(acc1).approve(saleContract.address, 800)).wait();
 			(await usdcContract.connect(acc2).approve(saleContract.address, 800)).wait();
-			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("Contract is paused");
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("pausedErr");
 			(await eivissaContract.playPause()).wait();
 		});
 		it("Should buy and override buy", async () => {

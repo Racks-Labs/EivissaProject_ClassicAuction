@@ -35,7 +35,7 @@ describe("EivissaProject Mint Test", async function () {
 
 			const Auction = await ethers.getContractFactory("Auction");
 			auctionContract = Auction.attach(auctionAddress);
-			await auctionContract.addAdmin([acc1.address]);
+			//await auctionContract.addAdmin([acc1.address]);
 		});
 		it("Should mint USDC and MRC", async () => {
 			let balanceOf = await usdcContract.balanceOf(deployer.address);
@@ -51,18 +51,17 @@ describe("EivissaProject Mint Test", async function () {
 
 	describe("Minting", () => {
 		it("Should revert", async () => {
-			await expect(auctionContract.connect(acc1).bid(0, 200)).to.be.revertedWith("Paused");
-			(await auctionContract.connect(acc1).playPause()).wait();
+			await expect(auctionContract.connect(acc1).bid(0, 200)).to.be.revertedWith("pausedErr");
+			(await auctionContract.playPause()).wait();
 
-			await expect(auctionContract.connect(acc1).bid(0, 200)).to.be.revertedWith("Whitelist");
-			(await auctionContract.connect(acc1).addToWhitelist([acc1.address])).wait();
+			await expect(auctionContract.connect(acc1).bid(0, 200)).to.be.revertedWith("whitelistErr");
+			(await auctionContract.addToWhitelist([acc1.address])).wait();
 
 			(await usdcContract.connect(acc1).approve(auctionContract.address, 800)).wait();
 			await expect(auctionContract.connect(acc1).bid(0, 1)).to.be.revertedWith("Price");
 		});
 		it("Should bid and override bid", async () => {
 			let transaction = await auctionContract.connect(acc1).bid(0, 200);
-			console.log(transaction, "owowowoowo");
 			transaction.wait();
 			await usdcContract.connect(addrs[0]).mintMore();
 			await usdcContract.connect(addrs[1]).mintMore();
@@ -71,7 +70,7 @@ describe("EivissaProject Mint Test", async function () {
 
 			await mrcContract.connect(addrs[0]).mint(1);
 			await mrcContract.connect(addrs[1]).mint(1);
-			await auctionContract.connect(acc1).addToWhitelist([addrs[0].address, addrs[1].address]);
+			await auctionContract.addToWhitelist([addrs[0].address, addrs[1].address]);
 
 			await auctionContract.connect(addrs[0]).bid(0, 200);
 			await auctionContract.connect(addrs[1]).bid(0, 200);

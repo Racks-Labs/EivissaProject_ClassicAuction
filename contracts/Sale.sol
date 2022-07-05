@@ -1,10 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./IMRC.sol";
 import "./EivissaProject.sol";
 import "./Err.sol";
+import "./IMRC.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 	/* error Sale_pausedErr();
 	error Sale_whitelistErr();

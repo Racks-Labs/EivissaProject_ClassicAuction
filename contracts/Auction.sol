@@ -2,6 +2,7 @@
 pragma solidity ^0.8.7;
 
 import "./EivissaProject.sol";
+import "./Err.sol";
 import "./Bidder.sol";
 import "./IMRC.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -30,7 +31,6 @@ contract Auction {
 
 	modifier onlyAdmin() {
 		require(isAdmin[msg.sender] == true, "adminErr");
-		//revert("admin");
 		_;
 	}
 

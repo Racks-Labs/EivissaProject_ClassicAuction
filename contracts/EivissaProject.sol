@@ -24,19 +24,19 @@ import "./Err.sol";
 //                                                              └────────┘
 
 contract EivissaProject is Ownable, ERC1155Supply {
-	bool public paused = true;
-	bool public transferible = true;
+	address royaltyWallet;
+	uint256[3] royalties;
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
+	IMRC mrc;
+	IERC20 usd;
+	bool public paused = true;
+	bool public transferible = true;
 	mapping(address => bool) public whitelist;
 	mapping(address => bool) public isAdmin;
 	Sale[] public sales;
 	Auction[] public auctions;
 	string public baseURI;
-	IMRC mrc;
-	IERC20 usd;
-	uint256[3] royalties;
-	address royaltyWallet;
 
 	modifier isNotPaused() {
 		if (isAdmin[msg.sender] == false && paused == true)
