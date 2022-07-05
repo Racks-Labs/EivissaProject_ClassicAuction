@@ -63,8 +63,8 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		_;
 	}
 
-	event newAuctionEvent(address auction, uint256[3] supplies);
-	event newSaleEvent(address auction, uint256[3] supplies);
+	event newAuctionEvent(address auction);
+	event newSaleEvent(address auction);
 
 	constructor(
 		string memory uri_,
@@ -94,7 +94,7 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
-		emit newSaleEvent(address(sale), supplies);
+		emit newSaleEvent(address(sale));
 	}
 
 	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin {
@@ -103,7 +103,7 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
-		emit newAuctionEvent(address(auction), supplies);
+		emit newAuctionEvent(address(auction));
 	}
 
 	function finishSale(uint256 index) public onlyAdmin {
@@ -177,6 +177,8 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 
 	function withdraw() public onlyOwner {
 		usd.transfer(owner(), usd.balanceOf(address(this)));
+		(bool success, ) = owner().call{value: address(this).balance}("");
+		require(success, "transaction failed");
 	}
 
 	//FUNCTION OVERRIDING

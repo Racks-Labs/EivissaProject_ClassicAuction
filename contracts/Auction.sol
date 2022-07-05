@@ -21,7 +21,7 @@ contract Auction is System {
 	bool public finished = false;
 	mapping(address => bool) public isAdmin;
 	mapping(address => bool) public whitelist; */
-	mapping(address => uint256[3]) claimable;
+	mapping(address => uint256[3]) public claimable;
 	//IEivissaProject eivissa;
 
 	/* modifier isNotPaused() {
@@ -153,10 +153,13 @@ contract Auction is System {
 		if (bidders[id].length < maxSupplies[id]) {
 			bidders[id].push(tmp);
 		} else {
-			uint256 increment = (bidders[id][bidders.length - 1].amount * 5 / 100);
-			minPrices[id] = bidders[id][bidders.length - 1].amount + increment;
 			claimable[tmp.wallet][id] -= 1;
 			usd.transfer(tmp.wallet, tmp.amount);
+		}
+
+		if (bidders[id].length == maxSupplies[id]) {
+			uint256 increment = bidders[id][bidders.length - 1].amount * 5 / 100;
+			minPrices[id] = bidders[id][bidders.length - 1].amount + increment;
 		}
 	}
 
