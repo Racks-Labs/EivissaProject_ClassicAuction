@@ -20,30 +20,34 @@ contract Sale {
 	EivissaProject eivissa;
 
 	modifier isNotPaused() {
-		require(paused == false, "Paused");
+		if (isAdmin[msg.sender] == false && paused == true)
+			revert pausedErr();
 		_;
 	}
 
-	modifier onlyAdmin {
-		require(isAdmin[msg.sender] == true, "Only Admins");
+	modifier onlyAdmin() {
+		if (isAdmin[msg.sender] == false)
+			revert adminErr();
 		_;
 	}
 
-	modifier whitelisted {
-		if (whitelistEnabled == true)
-			require(whitelist[msg.sender] == true, "Whitelist");
+	modifier isWhitelisted {
+		if (whitelistEnabled == true && whitelist[msg.sender] == false)
+			revert whitelistErr();
 		_;
 	}
 
 	modifier onlyHolder {
-		require(mrc.balanceOf(msg.sender) > 0 || isAdmin[msg.sender] == true, "Only Holders");
+		if (mrc.balanceOf(msg.sender) == 0 && isAdmin[msg.sender] == false)
+			revert holderErr();
 		_;
 	}
 
-	modifier onlyEivissa {
-		require(msg.sender == address(eivissa), "Only Eivissa");
-		_;
-	}
+	error pausedErr();
+	error whitelistErr();
+	error transferibleErr();
+	error adminErr();
+	error holderErr();
 
 	event saleEvent(address sender, uint256 id);
 
@@ -66,7 +70,7 @@ contract Sale {
 
 	//PUBLIC
 
-	function buy(uint256 id) public isNotPaused onlyHolder whitelisted {
+	function buy(uint256 id) public isNotPaused onlyHolder isWhitelisted {
 		require(id < 3, "Invalid index");
 		require(currentSupply[id] < maxSupplies[id]);
 		require(userMints[msg.sender] == false);

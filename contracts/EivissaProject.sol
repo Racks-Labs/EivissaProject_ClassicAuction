@@ -38,28 +38,36 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	address royaltyWallet;
 
 	modifier isNotPaused() {
-		if (isAdmin[msg.sender] == false)
-			require(paused == false, "Contract is paused");
+		if (isAdmin[msg.sender] == false && paused == true)
+			revert pausedErr();
 		_;
 	}
 
 	modifier isWhitelisted() {
-		require(whitelist[msg.sender] == true);
+		if (whitelist[msg.sender] == false)
+			revert whitelistErr();
 		_;
 	}
 
 	modifier isTransferible() {
-		require(transferible == true, "Contract is not transferible");
+		if (transferible == false)
+			revert transferibleErr();
 		_;
 	}
 
 	modifier onlyAdmin() {
-		require(isAdmin[msg.sender] == true, "You're not an admin");
+		if (isAdmin[msg.sender] == false)
+			revert adminErr();
 		_;
 	}
 
-	event newAuctionEvent(address);
-	event newSaleEvent(address);
+	error pausedErr();
+	error whitelistErr();
+	error transferibleErr();
+	error adminErr();
+
+	event newAuctionEvent(address auction, uint256[3] supplies);
+	event newSaleEvent(address auction, uint256[3] supplies);
 
 	constructor(
 		string memory uri_,
@@ -89,7 +97,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
-		emit newSaleEvent(address(sale));
+		emit newSaleEvent(address(sale), supplies);
 	}
 
 	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin {
@@ -98,7 +106,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
-		emit newAuctionEvent(address(auction));
+		emit newAuctionEvent(address(auction), supplies);
 	}
 
 	function finishSale(uint256 index) public onlyAdmin {

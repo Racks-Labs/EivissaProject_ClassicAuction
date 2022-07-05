@@ -22,30 +22,34 @@ contract Auction {
 	bool public finished = false;
 
 	modifier isNotPaused() {
-		require(paused == false, "Paused");
+		if (isAdmin[msg.sender] == false && paused == true)
+			revert pausedErr();
 		_;
 	}
 
-	modifier onlyAdmin {
-		require(isAdmin[msg.sender] == true, "Only Admins");
+	modifier onlyAdmin() {
+		if (isAdmin[msg.sender] == false)
+			revert adminErr();
 		_;
 	}
 
-	modifier whitelisted {
-		if (whitelistEnabled == true)
-			require(whitelist[msg.sender] == true, "Whitelist");
+	modifier isWhitelisted {
+		if (whitelistEnabled == true && whitelist[msg.sender] == false)
+			revert whitelistErr();
 		_;
 	}
 
 	modifier onlyHolder {
-		require(mrc.balanceOf(msg.sender) > 0 || isAdmin[msg.sender] == true, "Only Holders");
+		if (mrc.balanceOf(msg.sender) == 0 && isAdmin[msg.sender] == false)
+			revert holderErr();
 		_;
 	}
 
-	modifier onlyEivissa {
-		require(msg.sender == address(eivissa), "Only Eivissa");
-		_;
-	}
+	error pausedErr();
+	error whitelistErr();
+	error transferibleErr();
+	error adminErr();
+	error holderErr();
 
 	event auctionEvent(address sender, uint256 id, uint256 price);
 
@@ -68,7 +72,7 @@ contract Auction {
 
 	//PUBLIC
 
-	function bid(uint256 id, uint256 price) public isNotPaused onlyHolder whitelisted {
+	function bid(uint256 id, uint256 price) public isNotPaused onlyHolder isWhitelisted {
 		require(finished == false, "Has finished");
 		require(id < 3, "Invalid index");
 		require(price >= minPrices[id], "Price");
