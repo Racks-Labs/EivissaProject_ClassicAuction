@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Auction.sol";
 import "./Sale.sol";
 import "./IMRC.sol";
+import "./Err.sol";
 
 //              ▟██████████   █████    ▟███████████   █████████████
 //            ▟████████████   █████  ▟█████████████   █████████████   ███████████▛
@@ -60,11 +61,6 @@ contract EivissaProject is Ownable, ERC1155Supply {
 			revert adminErr();
 		_;
 	}
-
-	error pausedErr();
-	error whitelistErr();
-	error transferibleErr();
-	error adminErr();
 
 	event newAuctionEvent(address auction, uint256[3] supplies);
 	event newSaleEvent(address auction, uint256[3] supplies);

@@ -48,8 +48,10 @@ describe("EivissaProject Mint Test", async function () {
 	describe("exceptions", () => {
 		it("should revert if user not whitelisted", async () => {
 			await usdc.connect(acc2).approve(auctionContract.address, 100);
-			await expect(saleContract.buy(0)).to.be.revertedWith("Sale_whitelistErr");
-			await expect(auctionContract.connect(acc2).bid(0, 100)).to.be.revertedWith("Sale_whitelistErr");
+			await expect(saleContract.buy(0)).to.be.revertedWith("whitelistErr");
+			await expect(auctionContract.connect(acc2).bid(0, 100)).to.be.revertedWith("whitelistErr");
+			//const transaction = await auctionContract.connect(acc2).bid(0, 100);
+			//console.log(transaction);
 		});
 	});
 });

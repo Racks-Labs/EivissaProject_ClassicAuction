@@ -1,15 +1,15 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "./EivissaProject.sol";
-import "./IMRC.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./IMRC.sol";
+import "./EivissaProject.sol";
+import "./Err.sol";
 
-	error Sale_pausedErr();
+	/* error Sale_pausedErr();
 	error Sale_whitelistErr();
-	error Sale_transferibleErr();
 	error Sale_adminErr();
-	error Sale_holderErr();
+	error Sale_holderErr(); */
 
 contract Sale {
 	uint256[3] public currentSupply;
@@ -27,29 +27,29 @@ contract Sale {
 
 	modifier isNotPaused() {
 		if (isAdmin[msg.sender] == false && paused == true)
-			revert Sale_pausedErr();
+			revert pausedErr();
 		_;
 	}
 
 	modifier onlyAdmin() {
 		if (isAdmin[msg.sender] == false)
-			revert Sale_adminErr();
+			revert adminErr();
 		_;
 	}
 
 	modifier isWhitelisted() {
 		if (whitelistEnabled == true && whitelist[msg.sender] == false)
-			revert Sale_whitelistErr();
+			revert whitelistErr();
 		_;
 	}
 
 	modifier onlyHolder() {
 		if (mrc.balanceOf(msg.sender) == 0 && isAdmin[msg.sender] == false)
-			revert Sale_holderErr();
+			revert holderErr();
 		_;
 	}
 
-	
+
 
 	event saleEvent(address sender, uint256 id);
 

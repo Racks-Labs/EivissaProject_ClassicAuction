@@ -5,7 +5,7 @@ import "./EivissaProject.sol";
 import "./Bidder.sol";
 import "./IMRC.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-	
+
 
 contract Auction {
 	uint256[3] public maxSupplies;
@@ -22,33 +22,29 @@ contract Auction {
 	EivissaProject eivissa;
 	bool public finished = false;
 
-		
-
 	modifier isNotPaused() {
 		if (isAdmin[msg.sender] == false && paused == true)
-			revert("paused");
+			revert pausedErr();
 		_;
 	}
 
 	modifier onlyAdmin() {
-		if (isAdmin[msg.sender] == false)
-			revert("admin");
+		require(isAdmin[msg.sender] == true, "adminErr");
+		//revert("admin");
 		_;
 	}
 
 	modifier isWhitelisted() {
 		if (whitelistEnabled == true && whitelist[msg.sender] == false)
-			revert("whitelist");
+			revert whitelistErr();
 		_;
 	}
 
 	modifier onlyHolder() {
 		if (mrc.balanceOf(msg.sender) == 0 && isAdmin[msg.sender] == false)
-			revert("not holder");
+			revert holderErr();
 		_;
 	}
-
-	
 
 	event auctionEvent(address sender, uint256 id, uint256 price);
 
