@@ -178,7 +178,7 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	function withdraw() public onlyOwner {
 		usd.transfer(owner(), usd.balanceOf(address(this)));
 		(bool success, ) = owner().call{value: address(this).balance}("");
-		require(success, "transaction failed");
+		require(success, "failed");
 	}
 
 	//FUNCTION OVERRIDING
