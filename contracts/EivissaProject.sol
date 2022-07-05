@@ -106,19 +106,11 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		emit newAuctionEvent(address(auction));
 	}
 
-	function finishSale(uint256 index) public onlyAdmin {
-		sales[index].finish();
-	}
-
-	function finishAuction(uint256 index) public onlyAdmin {
-		auctions[index].finish();
-	}
-
-	function currentSales() public view returns(uint256) {
+	function totalSales() public view returns(uint256) {
 		return sales.length;
 	}
 
-	function currentAuctions() public view returns(uint256) {
+	function totalAuctions() public view returns(uint256) {
 		return auctions.length;
 	}
 
