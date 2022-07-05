@@ -62,6 +62,7 @@ describe("EivissaProject Mint Test", async function () {
 		});
 		it("Should bid and override bid", async () => {
 			let transaction = await auctionContract.connect(acc1).bid(0, 200);
+			console.log(transaction, "owowowoowo");
 			transaction.wait();
 			await usdcContract.connect(addrs[0]).mintMore();
 			await usdcContract.connect(addrs[1]).mintMore();

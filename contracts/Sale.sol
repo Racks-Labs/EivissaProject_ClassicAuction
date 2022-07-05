@@ -5,6 +5,12 @@ import "./EivissaProject.sol";
 import "./IMRC.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+	error Sale_pausedErr();
+	error Sale_whitelistErr();
+	error Sale_transferibleErr();
+	error Sale_adminErr();
+	error Sale_holderErr();
+
 contract Sale {
 	uint256[3] public currentSupply;
 	uint256[3] public maxSupplies;
@@ -21,33 +27,29 @@ contract Sale {
 
 	modifier isNotPaused() {
 		if (isAdmin[msg.sender] == false && paused == true)
-			revert pausedErr();
+			revert Sale_pausedErr();
 		_;
 	}
 
 	modifier onlyAdmin() {
 		if (isAdmin[msg.sender] == false)
-			revert adminErr();
+			revert Sale_adminErr();
 		_;
 	}
 
-	modifier isWhitelisted {
+	modifier isWhitelisted() {
 		if (whitelistEnabled == true && whitelist[msg.sender] == false)
-			revert whitelistErr();
+			revert Sale_whitelistErr();
 		_;
 	}
 
-	modifier onlyHolder {
+	modifier onlyHolder() {
 		if (mrc.balanceOf(msg.sender) == 0 && isAdmin[msg.sender] == false)
-			revert holderErr();
+			revert Sale_holderErr();
 		_;
 	}
 
-	error pausedErr();
-	error whitelistErr();
-	error transferibleErr();
-	error adminErr();
-	error holderErr();
+	
 
 	event saleEvent(address sender, uint256 id);
 

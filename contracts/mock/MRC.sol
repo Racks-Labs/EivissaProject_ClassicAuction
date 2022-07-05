@@ -30,9 +30,9 @@ contract MRCRYPTO is ERC721Enumerable, Ownable {
 
 	uint256 public previousMaxSupply = 0;
 	uint256 public maxMintAmount = 20;
-	bool public paused = true;
+	bool public paused = false;
 	bool public revealed = false;
-	bool public whitelistOn = true;
+	bool public whitelistOn = false;
 	bool public lockURI = false;
 	bool public lockExt = false;
 
