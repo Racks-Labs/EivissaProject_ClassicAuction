@@ -1,13 +1,21 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "./IEivissaProject.sol";
+/* import "./IEivissaProject.sol";
+import "./Err.sol";
 import "./IMRC.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol"; */
 
-contract Sale {
+import "./System.sol";
+
+	/* error Sale_pausedErr();
+	error Sale_whitelistErr();
+	error Sale_adminErr();
+	error Sale_holderErr(); */
+
+contract Sale is System {
 	uint256[3] public currentSupply;
-	uint256[3] public maxSupplies;
+	/* uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
 	IMRC mrc;
 	IERC20 usd;
@@ -15,34 +23,37 @@ contract Sale {
 	bool public paused = true;
 	bool public whitelistEnabled = true;
 	mapping(address => bool) public isAdmin;
-	mapping(address => bool) public whitelist;
-	IEivissaProject eivissa;
+	mapping(address => bool) public whitelist; */
+	mapping(address => bool) userMints;
+	//IEivissaProject eivissa;
 
-	modifier isNotPaused() {
-		require(paused == false, "This sale is not running at the moment");
+	/* modifier isNotPaused() {
+		if (isAdmin[msg.sender] == false && paused == true)
+			revert pausedErr();
 		_;
 	}
 
-	modifier onlyAdmin {
-		require(isAdmin[msg.sender] == true, "Only admins can do this");
+	modifier onlyAdmin() {
+		if (isAdmin[msg.sender] == false)
+			revert adminErr();
 		_;
 	}
 
-	modifier whitelisted {
-		if (whitelistEnabled == true)
-			require(whitelist[msg.sender] == true, "You are not whitelisted");
+	modifier isWhitelisted() {
+		if (whitelistEnabled == true && whitelist[msg.sender] == false)
+			revert whitelistErr();
 		_;
 	}
 
-	modifier onlyHolder {
-		require(mrc.balanceOf(msg.sender) > 0 || isAdmin[msg.sender] == true, "Only holders can do this");
+	modifier onlyHolder() {
+		if (mrc.balanceOf(msg.sender) == 0 && isAdmin[msg.sender] == false)
+			revert holderErr();
 		_;
-	}
+	} */
 
-	modifier onlyEivissa {
-		require(msg.sender == address(eivissa), "This can only be done from the Eivissa contract");
-		_;
-	}
+
+
+	event saleEvent(address sender, uint256 id);
 
 	constructor(IEivissaProject eivissa_,
 				uint256[3] memory maxSupplies_,
@@ -50,35 +61,47 @@ contract Sale {
 				string memory name_,
 				IMRC mrc_,
 				IERC20 usd_,
-				address newAdmin) {
-		eivissa = eivissa_;
+				address newAdmin) System(
+					eivissa_,
+					maxSupplies_,
+					minPrices_,
+					name_,
+					mrc_,
+					usd_,
+					newAdmin
+				) {
+		/* eivissa = eivissa_;
 		maxSupplies = maxSupplies_;
 		minPrices = minPrices_;
 		mrc = mrc_;
 		usd = usd_;
 		name = name_;
 		isAdmin[address(eivissa)] = true;
-		isAdmin[newAdmin] = true;
+		isAdmin[newAdmin] = true; */
 	}
 
 	//PUBLIC
 
-	function buy(uint256 id) public isNotPaused onlyHolder whitelisted {
+	function buy(uint256 id) public isNotPaused onlyHolder isWhitelisted {
 		require(id < 3, "Invalid index");
 		require(currentSupply[id] < maxSupplies[id]);
+		require(userMints[msg.sender] == false);
 
 		usd.transferFrom(msg.sender, address(eivissa), minPrices[id]);
 		++(currentSupply[id]);
-		eivissa.mint(msg.sender, id, minPrices[id]);
+
+		userMints[msg.sender] = true;
+		eivissa.mint(msg.sender, id, 1);
+		emit saleEvent(msg.sender, id);
 	}
 
-	function playPause() public onlyAdmin {
+	/* function playPause() public onlyAdmin {
 		paused = !paused;
 	}
 
-	function finish() public onlyEivissa {
+	function finish() public onlyAdmin {
 		usd.transfer(address(eivissa), usd.balanceOf(address(this)));
-		selfdestruct(payable(address(eivissa)));
+		//selfdestruct(payable(address(eivissa)));
 	}
 
 	function addAdmin(address[] memory newOnes) public onlyAdmin {
@@ -105,7 +128,7 @@ contract Sale {
 
 	function switchWhitelist() public onlyAdmin {
 		whitelistEnabled = !whitelistEnabled;
-	}
+	} */
 
-	receive() external payable {}
+	//receive() external payable {}
 }

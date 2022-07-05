@@ -32,7 +32,7 @@ contract MRCRYPTO is ERC721Enumerable, Ownable {
 	uint256 public maxMintAmount = 20;
 	bool public paused = true;
 	bool public revealed = false;
-	bool public whitelistOn = true;
+	bool public whitelistOn = false;
 	bool public lockURI = false;
 	bool public lockExt = false;
 
@@ -80,11 +80,10 @@ contract MRCRYPTO is ERC721Enumerable, Ownable {
 	function mint(uint256 _mintAmount) public payable {
 		uint256 supply = totalSupply();
 
-		require(!paused);
-		if (whitelistOn == true) require(isWhitelisted[msg.sender] || msg.sender == owner());
-		require(_mintAmount > 0);
-		require(_mintAmount <= maxMintAmount);
-		require(supply + _mintAmount <= totalMaxSupply);
+		/* require(!paused, "Paused");
+		if (whitelistOn == true) require(isWhitelisted[msg.sender] || msg.sender == owner(), "Not whitelisted");
+		require(_mintAmount <= maxMintAmount, "Mint amount");
+		require(supply + _mintAmount <= totalMaxSupply, "Max supply"); */
 
 		//if (msg.sender != owner())
 			//require(msg.value >= cost[phase] * _mintAmount, "Not enough value");

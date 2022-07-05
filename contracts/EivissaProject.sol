@@ -5,10 +5,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./IEivissaProject.sol";
 import "./Auction.sol";
 import "./Sale.sol";
 import "./IMRC.sol";
-import "./IEivissaProject.sol";
+import "./Err.sol";
 
 //              ▟██████████   █████    ▟███████████   █████████████
 //            ▟████████████   █████  ▟█████████████   █████████████   ███████████▛
@@ -24,47 +25,51 @@ import "./IEivissaProject.sol";
 //                                                              └────────┘
 
 contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
-	bool public paused = true;
-	bool public transferible = true;
+	address royaltyWallet;
+	uint256[3] royalties;
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
+	IMRC mrc;
+	IERC20 usd;
+	bool public paused = true;
+	bool public transferible = true;
 	mapping(address => bool) public whitelist;
 	mapping(address => bool) public isAdmin;
 	Sale[] public sales;
 	Auction[] public auctions;
 	string public baseURI;
-	IMRC mrc;
-	IERC20 usd;
-	uint256[3] royalties;
-	address royaltyWallet;
 
 	modifier isNotPaused() {
-		if (isAdmin[msg.sender] == false)
-			require(paused == false, "Contract is paused");
+		if (isAdmin[msg.sender] == false && paused == true)
+			revert pausedErr();
 		_;
 	}
 
 	modifier isWhitelisted() {
-		require(whitelist[msg.sender] == true);
+		if (whitelist[msg.sender] == false)
+			revert whitelistErr();
 		_;
 	}
 
 	modifier isTransferible() {
-		require(transferible == true, "Contract is not transferible");
+		if (transferible == false)
+			revert transferibleErr();
 		_;
 	}
 
 	modifier onlyAdmin() {
-		require(isAdmin[msg.sender] == true, "You're not an admin");
+		if (isAdmin[msg.sender] == false)
+			revert adminErr();
 		_;
 	}
 
-	event mintEvent(address buyer, uint256 id, uint256 price);
+	event newAuctionEvent(address auction);
+	event newSaleEvent(address auction);
 
 	constructor(
 		string memory uri_,
-		IERC20 usd_,
 		IMRC mrc_,
+		IERC20 usd_,
 		uint256[3] memory maxSupplies_,
 		uint256[3] memory minPrices_
 	) ERC1155(uri_) {
@@ -78,28 +83,27 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	}
 
 	//Note: Mint using USDC
-	function mint(address to, uint256 id, uint256 price) public override isNotPaused isWhitelisted {
-		require(totalSupply(id) < maxSupplies[id], "There are no tokens left in this id");
-		_mint(to, id, 1, "");
-		emit mintEvent(to, id, price);
+	function mint(address to, uint256 id, uint256 amount) public override isNotPaused isWhitelisted {
+		require(totalSupply(id) < maxSupplies[id], "Id no tokens left");
+		_mint(to, id, amount, "");
 	}
 
-	function newSale(uint256[3] memory supplies, string memory name) external onlyAdmin returns(address) {
+	function newSale(uint256[3] memory supplies, string memory name) external onlyAdmin {
 		for (uint256 i = 0; i < 3; ++i)
-			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
+			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "Exceeds MaxSupply");
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
-		return address(sale);
+		emit newSaleEvent(address(sale));
 	}
 
-	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin returns(address) {
+	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin {
 		for (uint256 i = 0; i < 3; ++i)
-			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "One of the parameters exceds the requirements");
+			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "Exceeds MaxSupply");
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
-		return address(auction);
+		emit newAuctionEvent(address(auction));
 	}
 
 	function finishSale(uint256 index) public onlyAdmin {
@@ -173,6 +177,8 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 
 	function withdraw() public onlyOwner {
 		usd.transfer(owner(), usd.balanceOf(address(this)));
+		(bool success, ) = owner().call{value: address(this).balance}("");
+		require(success, "transaction failed");
 	}
 
 	//FUNCTION OVERRIDING
