@@ -5,9 +5,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./IEivissaProject.sol";
 import "./Auction.sol";
 import "./Sale.sol";
 import "./IMRC.sol";
+import "./Err.sol";
 
 //              ▟██████████   █████    ▟███████████   █████████████
 //            ▟████████████   █████  ▟█████████████   █████████████   ███████████▛
@@ -22,20 +24,20 @@ import "./IMRC.sol";
 //                          ▜██████▙        ▟██████▛            │  LABS  │
 //                                                              └────────┘
 
-contract EivissaProject is Ownable, ERC1155Supply {
-	bool public paused = true;
-	bool public transferible = true;
+contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
+	address royaltyWallet;
+	uint256[3] royalties;
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
+	IMRC mrc;
+	IERC20 usd;
+	bool public paused = true;
+	bool public transferible = true;
 	mapping(address => bool) public whitelist;
 	mapping(address => bool) public isAdmin;
 	Sale[] public sales;
 	Auction[] public auctions;
 	string public baseURI;
-	IMRC mrc;
-	IERC20 usd;
-	uint256[3] royalties;
-	address royaltyWallet;
 
 	modifier isNotPaused() {
 		if (isAdmin[msg.sender] == false && paused == true)
@@ -61,13 +63,8 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		_;
 	}
 
-	error pausedErr();
-	error whitelistErr();
-	error transferibleErr();
-	error adminErr();
-
-	event newAuctionEvent(address auction, uint256[3] supplies);
-	event newSaleEvent(address auction, uint256[3] supplies);
+	event newAuctionEvent(address auction);
+	event newSaleEvent(address auction);
 
 	constructor(
 		string memory uri_,
@@ -86,7 +83,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 	}
 
 	//Note: Mint using USDC
-	function mint(address to, uint256 id, uint256 amount) public isNotPaused isWhitelisted {
+	function mint(address to, uint256 id, uint256 amount) public override isNotPaused isWhitelisted {
 		require(totalSupply(id) < maxSupplies[id], "Id no tokens left");
 		_mint(to, id, amount, "");
 	}
@@ -97,7 +94,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
-		emit newSaleEvent(address(sale), supplies);
+		emit newSaleEvent(address(sale));
 	}
 
 	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin {
@@ -106,7 +103,7 @@ contract EivissaProject is Ownable, ERC1155Supply {
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
-		emit newAuctionEvent(address(auction), supplies);
+		emit newAuctionEvent(address(auction));
 	}
 
 	function finishSale(uint256 index) public onlyAdmin {
@@ -180,6 +177,8 @@ contract EivissaProject is Ownable, ERC1155Supply {
 
 	function withdraw() public onlyOwner {
 		usd.transfer(owner(), usd.balanceOf(address(this)));
+		(bool success, ) = owner().call{value: address(this).balance}("");
+		require(success, "transaction failed");
 	}
 
 	//FUNCTION OVERRIDING

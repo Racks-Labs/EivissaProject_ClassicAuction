@@ -16,7 +16,7 @@ npx hardhat help
 In order to deploy and verify a contract use
 ```shell
 npx hardhat run --network rinkeby scripts/run.js
-npx hardhat verify <DEPLOYADDRESS> --network rinkeby "baseURI" "usdcContractAddress" "mrcContractAddress"
+npx hardhat verify <DEPLOYADDRESS> --network rinkeby --constructor-args utils/eivissa-arguments.js
 ```
 Warning: set base to 6 decimals in case of using USDC.
 
