@@ -1,16 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-/* import "./IEivissaProject.sol";
-import "./Err.sol";
-import "./IMRC.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol"; */
 import "./System.sol";
 import "./Bidder.sol";
 
 
 contract Auction is System {
 	Bidder[][3] public bidders;
+	uint256[3] public biddersLength;
 	mapping(address => uint256[3]) public claimable;
 
 	event auctionEvent(address sender, uint256 id, uint256 price);
@@ -66,11 +63,15 @@ contract Auction is System {
 	function addBidder(address newOne, uint256 amount, uint256 id) private {
 		claimable[msg.sender][id] += 1;
 		Bidder memory tmp = Bidder(newOne, amount);
+		bool newEntered = false;
+
 		for (uint256 i = 0; i < bidders[id].length; ++i) {
-			if (tmp.amount >= bidders[id][i].amount) {
-				Bidder memory aux = bidders[id][i];
-				bidders[id][i] = tmp;
-				tmp = aux;
+			if ((newEntered == false && tmp.amount > bidders[id][i].amount) ||
+				(newEntered == true && tmp.amount >= bidders[id][i].amount)) {
+					newEntered = true;
+					Bidder memory aux = bidders[id][i];
+					bidders[id][i] = tmp;
+					tmp = aux;
 			}
 		}
 
@@ -82,8 +83,8 @@ contract Auction is System {
 		}
 
 		if (bidders[id].length == maxSupplies[id]) {
-			uint256 increment = bidders[id][bidders.length - 1].amount * 5 / 100;
-			minPrices[id] = bidders[id][bidders.length - 1].amount + increment;
+			uint256 increment = bidders[id][bidders[id].length - 1].amount * 5 / 100;
+			minPrices[id] = bidders[id][bidders[id].length - 1].amount + increment;
 		}
 	}
 }
