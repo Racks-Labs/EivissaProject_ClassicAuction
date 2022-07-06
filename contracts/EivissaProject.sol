@@ -153,6 +153,10 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		maxSupplies = maxSupplies_;
 	}
 
+	function setMinPrices(uint256 [3] memory minPrices_) external onlyOwner {
+		minPrices = minPrices_;
+	}
+
 	function royaltyInfo(uint256 tokenId, uint256 salePrice)
 		external
 		view
