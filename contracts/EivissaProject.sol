@@ -33,6 +33,7 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	IERC20 usd;
 	bool public paused = true;
 	bool public transferible = true;
+	mapping(address => bool) public isCollab;
 	mapping(address => bool) public whitelist;
 	mapping(address => bool) public isAdmin;
 	Sale[] public sales;
@@ -52,7 +53,7 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	}
 
 	modifier isTransferible() {
-		if (transferible == false)
+		if (transferible == false || isCollab[msg.sender] == true)
 			revert transferibleErr();
 		_;
 	}
@@ -140,6 +141,11 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 			whitelist[newOnes[i]] = false;
 	}
 
+	function addCollab(address[] memory newOnes) public onlyAdmin {
+		for (uint256 i = 0; i < newOnes.length; ++i)
+			isCollab[newOnes[i]] = true;
+	}
+
 	function uri(uint256 _id) public view override returns (string memory) {
 		require(exists(_id), "URI: nonexistent token");
 		return string(abi.encodePacked(baseURI, "/", Strings.toString(_id), ".json"));
@@ -151,6 +157,10 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 
 	function setMaxSupplies(uint256[3] memory maxSupplies_) external onlyOwner {
 		maxSupplies = maxSupplies_;
+	}
+
+	function setMinPrices(uint256 [3] memory minPrices_) external onlyOwner {
+		minPrices = minPrices_;
 	}
 
 	function royaltyInfo(uint256 tokenId, uint256 salePrice)
