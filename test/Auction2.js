@@ -58,11 +58,64 @@ describe("Auction2 Test", async function () {
 
 	describe("bid logic", () => {
 		it("should bid correctly", async () => {
-			await auctionContract.addToWhitelist([acc1.address, acc2.address]);
-			await usdc.connect(acc1).approve(auctionContract.address, 600);
+			// mint usd mrc and approve
+			await usdc.connect(addrs[0]).mintMore();
+			await usdc.connect(addrs[1]).mintMore();
+			await mrc.connect(addrs[0]).mint(1);
+			await mrc.connect(addrs[1]).mint(1);
+			await usdc.approve(auctionContract.address, 1000);
+			await usdc.connect(acc1).approve(auctionContract.address, 1000);
+			await usdc.connect(acc2).approve(auctionContract.address, 1000);
+			await usdc.connect(addrs[0]).approve(auctionContract.address, 1000);
+			await usdc.connect(addrs[1]).approve(auctionContract.address, 1000);
 
-			//await auctionContract.connect(acc1).bid(0, 100);
-			await auctionContract.connect(acc1).bid(2, 350);
+			await auctionContract.addToWhitelist([
+				deployer.address,
+				acc1.address,
+				acc2.address,
+				addrs[0].address,
+				addrs[1].address,
+			]);
+
+			await auctionContract.connect(acc1).bid(0, 100);
+			await auctionContract.connect(acc2).bid(0, 100);
+			await auctionContract.connect(addrs[0]).bid(0, 100);
+			await auctionContract.connect(addrs[1]).bid(0, 100);
+
+			// check range has been added correctly
+			expect(await auctionContract.getRank(0, acc1.address)).to.be.equal(0);
+			expect(await auctionContract.getRank(0, acc2.address)).to.be.equal(1);
+			expect(await auctionContract.getRank(0, addrs[0].address)).to.be.equal(2);
+			expect(await auctionContract.getRank(0, addrs[1].address)).to.be.equal(3);
+
+			// check minPrice of id has been updated correctly
+			expect(await auctionContract.minPrices(0)).to.be.equal(105);
+
+			// check that usd is transfered back to user outbid
+			expect(await auctionContract.bid(0, 105))
+				.to.emit(usdc, "Transfer")
+				.withArgs(auctionContract.address, acc1.address, 100);
+
+			//check new bidder has correct possition
+			expect(await auctionContract.getRank(0, deployer.address)).to.be.equal(0);
+
+			// bid left ranges
+			await auctionContract.connect(addrs[1]).bid(1, 200);
+			await auctionContract.connect(addrs[0]).bid(1, 200);
+			await auctionContract.connect(acc1).bid(2, 300);
+
+			// check auction contract has received the correct usdc amount
+			expect(await usdc.balanceOf(auctionContract.address)).to.be.equal(1105);
+
+			// finish auction + send balance to eivissa
+			expect(await auctionContract.finish())
+				.to.emit(usdc, "Transfet")
+				.withArgs(auctionContract.address, eivissaContract.address, 1105);
+
+			// claim nfts foreach user
+			await auctionContract.connect(acc1).claim(0);
+
+			expect(await eivissaContract.balanceOf(acc1.address, 0)).to.be.equal(1);
 		});
 	});
 
