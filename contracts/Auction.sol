@@ -36,6 +36,7 @@ contract Auction is System {
 
 		usd.transferFrom(msg.sender, address(this), price);
 		addBidder(msg.sender, price, id);
+		emit auctionEvent(msg.sender, id, price);
 	}
 
 	function getRank(uint256 id, address wallet) public view returns(uint256) {
