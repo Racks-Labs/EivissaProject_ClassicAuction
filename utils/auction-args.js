@@ -1,5 +1,5 @@
 module.exports = [
-	"0x17D6e4be41F7a9408855B0876E1d55A07B32BFfe", //eivissa contract
+	"0xF2c74A43Cca9E26d0C4d7FF3cfC82E724DB6a8be", //eivissa contract
 	[3, 2, 1],
 	[200, 500, 1000],
 	"a1",
