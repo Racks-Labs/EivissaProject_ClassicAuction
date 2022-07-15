@@ -1,0 +1,12 @@
+{
+	"name": "Standard Ticket",
+	"description": "Con este ticket podras acceder a Eivissa Project (4 - 6 agosto) y disfrutar de los beneficios del VIP Ticket.",
+	"external_url": "https://mrcryptobyracksmafia.substack.com/p/eivissa-project",
+	"image": "pending",
+	"attributes": [
+		{
+			"trait_type": "Horario",
+			"value": "Jueves 20:00 a 23:00 y Viernes 16:00 a Sábado 5:00"
+		}
+	]
+}
