@@ -27,8 +27,8 @@ module.exports = {
 			url: `${process.env.ALCHEMY_URL_RINKEBY}`,
 			accounts: [`0x${process.env.PRIVATE_KEY}`],
 		},
-		ethereum: {
-			url: `${process.env.ALCHEMY_URL_ETHEREUM}`,
+		polygon: {
+			url: `${process.env.ALCHEMY_URL_POLYGON}`,
 			accounts: [`0x${process.env.PRIVATE_KEY}`],
 		},
 	},
@@ -36,6 +36,7 @@ module.exports = {
 		apiKey: {
 			rinkeby: process.env.ETHERSCAN_KEY,
 			mainnet: process.env.ETHERSCAN_KEY,
+			polygon: process.env.POLYGON_KEY
 		},
 	},
 	solidity: {
