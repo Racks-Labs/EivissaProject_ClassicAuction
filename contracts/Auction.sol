@@ -7,7 +7,6 @@ import "./Bidder.sol";
 
 contract Auction is System {
 	Bidder[][3] public bidders;
-	uint256[3] public biddersLength;
 	mapping(address => uint256[3]) public claimable;
 
 	event auctionEvent(address sender, uint256 id, uint256 price);
@@ -39,15 +38,15 @@ contract Auction is System {
 		emit auctionEvent(msg.sender, id, price);
 	}
 
-	function getRank(uint256 id, address wallet) external view returns(uint256) {
-		for (uint256 i = 0; i < bidders[id].length; ++i)
-			if (bidders[id][i].wallet == wallet)
-				return i;
+	function biddersAmount(uint256 id) external view returns(uint256) {
 		return bidders[id].length;
 	}
 
-	function biddersAmount(uint256 id) external view returns(uint256) {
-		return bidders[id].length;
+	function isInBid(address wallet, uint256 id) external view returns(bool) {
+		for (uint256 i = 0; i < bidders[id].length; ++i)
+			if (bidders[id][i].wallet == wallet)
+				return true;
+		return false;
 	}
 
 	function claim(uint256 id) public {
