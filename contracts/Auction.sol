@@ -7,7 +7,6 @@ import "./Bidder.sol";
 
 contract Auction is System {
 	Bidder[][3] public bidders;
-	uint256[3] public biddersLength;
 	mapping(address => uint256[3]) public claimable;
 
 	event auctionEvent(address sender, uint256 id, uint256 price);
