@@ -42,6 +42,13 @@ contract Auction is System {
 		return bidders[id].length;
 	}
 
+	function isInBid(address wallet, uint256 id) external view returns(bool) {
+		for (uint256 i = 0; i < bidders[id].length; ++i)
+			if (bidders[id][i].wallet == wallet)
+				return true;
+		return false;
+	}
+
 	function claim(uint256 id) public {
 		uint256 claimableNum = claimable[msg.sender][id];
 
