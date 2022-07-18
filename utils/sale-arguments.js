@@ -1,10 +1,9 @@
 module.exports = [
-	"0xf528713cE74c3c9C5e68D0af66A62e98361F1FF0", //eivissa contract
-	//eivissa owner
-	[3, 2, 1],
-	[200, 500, 1000],
-	"s1",
-	"0x66fce2bF6f40deC0Af3F9E8018B11125bb62ed82", //mrc
-	"0xeb8f08a975Ab53E34D8a0330E0D34de942C95926", //usd
-	"0x7eC7aF8CFF090c533dc23132286f33dD31d13E29", //eivissa owner
+	"0x7b89a3198F76a7729C764dBB2AE08FCf99eCC218", //eivissa contract
+	[8, 6, 6],
+	[340000000, 590000000, 1290000000],
+	"Top holders auction",
+	"0xeF453154766505FEB9dBF0a58E6990fd6eB66969", //mrc
+	"0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", //usd
+	"0x0AeaC6D1424EA6d0F87123A50CA5eEc9f16108c5", //eivissa owner
 ];

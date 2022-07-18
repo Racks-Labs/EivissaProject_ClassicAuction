@@ -29,8 +29,8 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	uint256[3] royalties;
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
-	IMRC mrc;
-	IERC20 usd;
+	IMRC public mrc;
+	IERC20 public usd;
 	bool public paused = true;
 	bool public transferible = true;
 	mapping(address => bool) public isCollab;
