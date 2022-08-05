@@ -1,5 +1,5 @@
-require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
+require("@nomicfoundation/hardhat-chai-matchers");
 require("dotenv").config();
 require("solidity-coverage");
 require("hardhat-contract-sizer");
@@ -27,17 +27,21 @@ module.exports = {
 			url: `${process.env.ALCHEMY_URL_RINKEBY}`,
 			accounts: [`0x${process.env.PRIVATE_KEY}`],
 		},
-		polygon: {
-			url: `${process.env.ALCHEMY_URL_POLYGON}`,
-			accounts: [`0x${process.env.PRIVATE_KEY}`],
-		},
+		// polygon: {
+		// 	url: `${process.env.ALCHEMY_URL_POLYGON}`,
+		// 	accounts: [`0x${process.env.PRIVATE_KEY}`],
+		// },
 	},
 	etherscan: {
 		apiKey: {
 			rinkeby: process.env.ETHERSCAN_KEY,
 			mainnet: process.env.ETHERSCAN_KEY,
-			polygon: process.env.POLYGON_KEY
+			// polygon: process.env.POLYGON_KEY
 		},
+	},
+	gasReporter: {
+		enabled: true,
+		// coinmarketcap: process.env.COINMARKETCAP_API_KEY,
 	},
 	solidity: {
 		version: "0.8.7",

@@ -47,8 +47,11 @@ describe("Auction2 Test", async function () {
 
 	describe("exceptions", () => {
 		it("should revert if user not whitelisted", async () => {
-			await expect(saleContract.buy(0)).to.be.revertedWith("whitelistErr");
-			await expect(auctionContract.connect(acc2).bid(0, 100)).to.be.revertedWith("whitelistErr");
+			await expect(saleContract.buy(0)).to.be.revertedWithCustomError(saleContract, "whitelistErr");
+			await expect(auctionContract.connect(acc2).bid(0, 100)).to.be.revertedWithCustomError(
+				auctionContract,
+				"whitelistErr"
+			);
 			await auctionContract.addToWhitelist([acc1.address, acc2.address]);
 			await saleContract.addToWhitelist([acc2.address]);
 			await expect(auctionContract.connect(acc2).bid(0, 100)).to.be.revertedWith("ERC20: insufficient allowance");
@@ -82,12 +85,6 @@ describe("Auction2 Test", async function () {
 			await auctionContract.connect(addrs[0]).bid(0, 100);
 			await auctionContract.connect(addrs[1]).bid(0, 100);
 
-			// check range has been added correctly
-			expect(await auctionContract.getRank(0, acc1.address)).to.be.equal(0);
-			expect(await auctionContract.getRank(0, acc2.address)).to.be.equal(1);
-			expect(await auctionContract.getRank(0, addrs[0].address)).to.be.equal(2);
-			expect(await auctionContract.getRank(0, addrs[1].address)).to.be.equal(3);
-
 			// check minPrice of id has been updated correctly
 			expect(await auctionContract.minPrices(0)).to.be.equal(105);
 
@@ -97,7 +94,7 @@ describe("Auction2 Test", async function () {
 				.withArgs(auctionContract.address, acc1.address, 100);
 
 			//check new bidder has correct possition
-			expect(await auctionContract.getRank(0, deployer.address)).to.be.equal(0);
+			// expect(await auctionContract.getRank(0, deployer.address)).to.be.equal(0);
 
 			// bid left ranges
 			await auctionContract.connect(addrs[1]).bid(1, 200);
@@ -109,7 +106,7 @@ describe("Auction2 Test", async function () {
 
 			// finish auction + send balance to eivissa
 			expect(await auctionContract.finish())
-				.to.emit(usdc, "Transfet")
+				.to.emit(usdc, "Transfer")
 				.withArgs(auctionContract.address, eivissaContract.address, 1105);
 
 			// claim nfts foreach user

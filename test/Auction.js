@@ -51,14 +51,23 @@ describe("Auction Test", async function () {
 
 	describe("Minting", () => {
 		it("Should revert", async () => {
-			await expect(auctionContract.connect(acc1).bid(0, 200)).to.be.revertedWith("pausedErr");
+			await expect(auctionContract.connect(acc1).bid(0, 200)).to.be.revertedWithCustomError(
+				auctionContract,
+				"pausedErr"
+			);
 			(await auctionContract.playPause()).wait();
 
-			await expect(auctionContract.connect(acc1).bid(0, 200)).to.be.revertedWith("whitelistErr");
+			await expect(auctionContract.connect(acc1).bid(0, 200)).to.be.revertedWithCustomError(
+				auctionContract,
+				"whitelistErr"
+			);
 			(await auctionContract.addToWhitelist([acc1.address])).wait();
 
 			(await usdcContract.connect(acc1).approve(auctionContract.address, 800)).wait();
-			await expect(auctionContract.connect(acc1).bid(0, 1)).to.be.revertedWith("Price");
+			await expect(auctionContract.connect(acc1).bid(0, 1)).to.be.revertedWithCustomError(
+				auctionContract,
+				"invalidPrice"
+			);
 		});
 		it("Should bid and override bid", async () => {
 			let transaction = await auctionContract.connect(acc1).bid(0, 200);
