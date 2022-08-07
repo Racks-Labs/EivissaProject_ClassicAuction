@@ -9,15 +9,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract System {
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
-	IMRC mrc;
-	IERC20 usd;
+	IMRC immutable mrc;
+	IERC20 immutable usd;
+	IEivissaProject immutable eivissa;
 	string public name;
 	bool public paused = true;
 	bool public whitelistEnabled = true;
 	bool public finished = false;
 	mapping(address => bool) public isAdmin;
 	mapping(address => bool) public whitelist;
-	IEivissaProject eivissa;
 
 	modifier isNotPaused() {
 		if (!isAdmin[msg.sender] && paused) revert pausedErr();
@@ -54,7 +54,7 @@ contract System {
 		mrc = mrc_;
 		usd = usd_;
 		name = name_;
-		isAdmin[address(eivissa)] = true;
+		isAdmin[address(eivissa_)] = true;
 		isAdmin[newAdmin] = true;
 	}
 
@@ -70,21 +70,29 @@ contract System {
 	}
 
 	function addAdmin(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i) isAdmin[newOnes[i]] = true;
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) isAdmin[newOnes[i]] = true;
+		}
 	}
 
 	function removeAdmin(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i) {
-			if (newOnes[i] != msg.sender) isAdmin[newOnes[i]] = false;
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) {
+				if (newOnes[i] != msg.sender) isAdmin[newOnes[i]] = false;
+			}
 		}
 	}
 
 	function addToWhitelist(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = true;
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = true;
+		}
 	}
 
 	function removeFromWhitelist(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = false;
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = false;
+		}
 	}
 
 	function switchWhitelist() public onlyAdmin {

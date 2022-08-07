@@ -22,15 +22,15 @@ import "./Err.sol";
 // ▟███████████████     ▜██████▙      ▟█████▛   ▟██████▛   ▟█████████████████████▙
 //                        ▜██████▙            ▟██████▛          ┌────────┐
 //                          ▜██████▙        ▟██████▛            │  LABS  │
-//                                                              └────────┘
+//                                                                 └────────┘
 
 contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	address royaltyWallet;
 	uint256[3] royalties;
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
-	IMRC mrc;
-	IERC20 usd;
+	IMRC immutable mrc;
+	IERC20 immutable usd;
 	bool public paused = true;
 	bool public transferible = true;
 	mapping(address => bool) public isCollab;
@@ -105,10 +105,12 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		emit newAuctionEvent(address(auction));
 	}
 
-	function checkSupplies(uint256[3] memory supplies) private {
-		for (uint256 i = 0; i < 3; ++i)
-			if (totalSupply(i) + supplies[i] > maxSupplies[i])
-				revert noTokensLeftErr(totalSupply(i) + supplies[i], maxSupplies[i]);
+	function checkSupplies(uint256[3] memory supplies) private view {
+		unchecked {
+			for (uint256 i = 0; i < 3; ++i)
+				if (totalSupply(i) + supplies[i] > maxSupplies[i])
+					revert noTokensLeftErr(totalSupply(i) + supplies[i], maxSupplies[i]);
+		}
 	}
 
 	function totalSales() public view returns (uint256) {
@@ -136,15 +138,21 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	}
 
 	function addToWhitelist(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = true;
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = true;
+		}
 	}
 
 	function removeFromWhitelist(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = false;
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = false;
+		}
 	}
 
 	function addCollab(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i) isCollab[newOnes[i]] = true;
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) isCollab[newOnes[i]] = true;
+		}
 	}
 
 	function uri(uint256 _id) public view override returns (string memory) {

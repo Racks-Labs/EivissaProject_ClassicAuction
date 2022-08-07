@@ -80,10 +80,10 @@ describe("Auction2 Test", async function () {
 				addrs[1].address,
 			]);
 
-			await auctionContract.connect(acc1).bid(0, 100);
-			await auctionContract.connect(acc2).bid(0, 100);
+			await auctionContract.connect(acc1).bid(0, 105);
+			await auctionContract.connect(acc2).bid(0, 110);
 			await auctionContract.connect(addrs[0]).bid(0, 100);
-			await auctionContract.connect(addrs[1]).bid(0, 100);
+			await auctionContract.connect(addrs[1]).bid(0, 108);
 
 			// check minPrice of id has been updated correctly
 			expect(await auctionContract.minPrices(0)).to.be.equal(105);
@@ -93,21 +93,18 @@ describe("Auction2 Test", async function () {
 				.to.emit(usdc, "Transfer")
 				.withArgs(auctionContract.address, acc1.address, 100);
 
-			//check new bidder has correct possition
-			// expect(await auctionContract.getRank(0, deployer.address)).to.be.equal(0);
-
 			// bid left ranges
 			await auctionContract.connect(addrs[1]).bid(1, 200);
 			await auctionContract.connect(addrs[0]).bid(1, 200);
 			await auctionContract.connect(acc1).bid(2, 300);
 
 			// check auction contract has received the correct usdc amount
-			expect(await usdc.balanceOf(auctionContract.address)).to.be.equal(1105);
+			expect(await usdc.balanceOf(auctionContract.address)).to.be.equal(1128);
 
 			// finish auction + send balance to eivissa
 			expect(await auctionContract.finish())
 				.to.emit(usdc, "Transfer")
-				.withArgs(auctionContract.address, eivissaContract.address, 1105);
+				.withArgs(auctionContract.address, eivissaContract.address, 1128);
 
 			// claim nfts foreach user
 			await auctionContract.connect(acc1).claim(0);

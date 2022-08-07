@@ -26,7 +26,9 @@ contract Sale is System {
 		require(currentSupply[id] < maxSupplies[id]);
 		require(!userMints[msg.sender]);
 
-		++(currentSupply[id]);
+		unchecked {
+			++(currentSupply[id]);
+		}
 		userMints[msg.sender] = true;
 		emit saleEvent(msg.sender, id);
 		eivissa.mint(msg.sender, id, 1);

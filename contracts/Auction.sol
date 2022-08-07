@@ -48,7 +48,9 @@ contract Auction is System {
 	}
 
 	function isInBid(address wallet, uint256 id) external view returns (bool) {
-		for (uint256 i = 0; i < bidders[id].length; ++i) if (bidders[id][i].wallet == wallet) return true;
+		unchecked {
+			for (uint256 i = 0; i < bidders[id].length; ++i) if (bidders[id][i].wallet == wallet) return true;
+		}
 		return false;
 	}
 
@@ -68,32 +70,40 @@ contract Auction is System {
 		uint256 amount,
 		uint256 id
 	) private {
-		claimable[msg.sender][id] += 1;
+		unchecked {
+			claimable[msg.sender][id] += 1;
+		}
 		Bidder memory tmp = Bidder(newOne, amount);
 		bool newEntered = false;
-
-		for (uint256 i = 0; i < bidders[id].length; ++i) {
-			if (
-				(newEntered == false && tmp.amount > bidders[id][i].amount) ||
-				(newEntered == true && tmp.amount >= bidders[id][i].amount)
-			) {
-				newEntered = true;
-				Bidder memory aux = bidders[id][i];
-				bidders[id][i] = tmp;
-				tmp = aux;
+		uint256 biddersLenght = bidders[id].length;
+		unchecked {
+			for (uint256 i = 0; i < biddersLenght; ++i) {
+				if (
+					(newEntered == false && tmp.amount > bidders[id][i].amount) ||
+					(newEntered == true && tmp.amount >= bidders[id][i].amount)
+				) {
+					newEntered = true;
+					Bidder memory aux = bidders[id][i];
+					bidders[id][i] = tmp;
+					tmp = aux;
+				}
 			}
 		}
 
-		if (bidders[id].length < maxSupplies[id]) {
+		if (biddersLenght < maxSupplies[id]) {
 			bidders[id].push(tmp);
 		} else {
-			claimable[tmp.wallet][id] -= 1;
+			unchecked {
+				claimable[tmp.wallet][id] -= 1;
+			}
 			if (!usd.transfer(tmp.wallet, tmp.amount)) revert usdTransferFailed();
 		}
 
 		if (bidders[id].length == maxSupplies[id]) {
-			uint256 increment = (bidders[id][bidders[id].length - 1].amount * 5) / 100;
-			minPrices[id] = bidders[id][bidders[id].length - 1].amount + increment;
+			unchecked {
+				uint256 increment = (bidders[id][bidders[id].length - 1].amount * 5) / 100;
+				minPrices[id] = bidders[id][bidders[id].length - 1].amount + increment;
+			}
 		}
 	}
 }
