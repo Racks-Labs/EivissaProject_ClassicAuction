@@ -25,8 +25,8 @@ import "./Err.sol";
 //                                                                 └────────┘
 
 contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
-	address royaltyWallet;
-	uint256[3] royalties;
+	address public royaltyWallet;
+	uint256[3] public royalties;
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
 	IMRC immutable mrc;
@@ -85,7 +85,7 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		uint256 id,
 		uint256 amount
 	) public override isNotPaused isWhitelisted {
-		if (totalSupply(id) >= maxSupplies[id]) revert noTokensLeftErr(totalSupply(id), maxSupplies[id]);
+		if (totalSupply(id) >= maxSupplies[id]) revert noTokensLeftErr();
 		_mint(to, id, amount, "");
 	}
 
@@ -107,49 +107,47 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 
 	function checkSupplies(uint256[3] memory supplies) private view {
 		unchecked {
-			for (uint256 i = 0; i < 3; ++i)
-				if (totalSupply(i) + supplies[i] > maxSupplies[i])
-					revert noTokensLeftErr(totalSupply(i) + supplies[i], maxSupplies[i]);
+			for (uint256 i = 0; i < 3; ++i) if (totalSupply(i) + supplies[i] > maxSupplies[i]) revert noTokensLeftErr();
 		}
 	}
 
-	function totalSales() public view returns (uint256) {
+	function totalSales() external view returns (uint256) {
 		return sales.length;
 	}
 
-	function totalAuctions() public view returns (uint256) {
+	function totalAuctions() external view returns (uint256) {
 		return auctions.length;
 	}
 
-	function playPause() public onlyAdmin {
+	function playPause() external onlyAdmin {
 		paused = !paused;
 	}
 
-	function switchTransferible() public onlyOwner {
+	function switchTransferible() external onlyOwner {
 		transferible = !transferible;
 	}
 
-	function addAdmin(address new_) public onlyOwner {
+	function addAdmin(address new_) external onlyOwner {
 		isAdmin[new_] = true;
 	}
 
-	function removeAdmin(address new_) public onlyOwner {
+	function removeAdmin(address new_) external onlyOwner {
 		isAdmin[new_] = false;
 	}
 
-	function addToWhitelist(address[] memory newOnes) public onlyAdmin {
+	function addToWhitelist(address[] memory newOnes) external onlyAdmin {
 		unchecked {
 			for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = true;
 		}
 	}
 
-	function removeFromWhitelist(address[] memory newOnes) public onlyAdmin {
+	function removeFromWhitelist(address[] memory newOnes) external onlyAdmin {
 		unchecked {
 			for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = false;
 		}
 	}
 
-	function addCollab(address[] memory newOnes) public onlyAdmin {
+	function addCollab(address[] memory newOnes) external onlyAdmin {
 		unchecked {
 			for (uint256 i = 0; i < newOnes.length; ++i) isCollab[newOnes[i]] = true;
 		}
@@ -172,21 +170,12 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		minPrices = minPrices_;
 	}
 
-	function royaltyInfo(uint256 tokenId, uint256 salePrice)
-		external
-		view
-		returns (address receiver, uint256 royaltyAmount)
-	{
-		royaltyAmount = (salePrice * royalties[tokenId]) / 100;
-		return (royaltyWallet, royaltyAmount);
-	}
-
 	function setRoyaltyInfo(uint256[3] memory royalties_, address royaltyWallet_) external onlyOwner {
 		royalties = royalties_;
 		royaltyWallet = royaltyWallet_;
 	}
 
-	function withdraw() public onlyOwner {
+	function withdraw() external onlyOwner {
 		if (!usd.transfer(owner(), usd.balanceOf(address(this)))) revert usdTransferFailed();
 		(bool success, ) = owner().call{value: address(this).balance}("");
 		if (!success) revert withdrawFailed();

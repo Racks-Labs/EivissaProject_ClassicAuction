@@ -91,7 +91,7 @@ describe("Auction2 Test", async function () {
 			// check that usd is transfered back to user outbid
 			expect(await auctionContract.bid(0, 105))
 				.to.emit(usdc, "Transfer")
-				.withArgs(auctionContract.address, acc1.address, 100);
+				.withArgs(auctionContract.address, acc1.address, 105);
 
 			// bid left ranges
 			await auctionContract.connect(addrs[1]).bid(1, 200);

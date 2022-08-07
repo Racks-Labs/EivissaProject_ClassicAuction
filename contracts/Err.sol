@@ -13,5 +13,5 @@ error auctionNoClaimableLeft();
 error invalidIndex();
 error invalidPrice();
 error nonexistentTokenURI();
-error noTokensLeftErr(uint256 totalSupply, uint256 maxSupply);
+error noTokensLeftErr();
 error ERC1155CallerNotOwnerNorApproved(address caller);

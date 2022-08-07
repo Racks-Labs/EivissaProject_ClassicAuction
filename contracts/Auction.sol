@@ -33,7 +33,7 @@ contract Auction is System {
 
 	//PUBLIC
 
-	function bid(uint256 id, uint256 price) public isNotPaused onlyHolder isWhitelisted noReentrant {
+	function bid(uint256 id, uint256 price) external isNotPaused onlyHolder isWhitelisted noReentrant {
 		if (finished) revert auctionFinished();
 		if (id > 3) revert invalidIndex();
 		if (price < minPrices[id]) revert invalidPrice();
@@ -45,13 +45,6 @@ contract Auction is System {
 
 	function biddersAmount(uint256 id) external view returns (uint256) {
 		return bidders[id].length;
-	}
-
-	function isInBid(address wallet, uint256 id) external view returns (bool) {
-		unchecked {
-			for (uint256 i = 0; i < bidders[id].length; ++i) if (bidders[id][i].wallet == wallet) return true;
-		}
-		return false;
 	}
 
 	function claim(uint256 id) public {
@@ -74,35 +67,50 @@ contract Auction is System {
 			claimable[msg.sender][id] += 1;
 		}
 		Bidder memory tmp = Bidder(newOne, amount);
-		bool newEntered = false;
 		uint256 biddersLenght = bidders[id].length;
-		unchecked {
-			for (uint256 i = 0; i < biddersLenght; ++i) {
-				if (
-					(newEntered == false && tmp.amount > bidders[id][i].amount) ||
-					(newEntered == true && tmp.amount >= bidders[id][i].amount)
-				) {
-					newEntered = true;
-					Bidder memory aux = bidders[id][i];
-					bidders[id][i] = tmp;
-					tmp = aux;
+		uint256 _maxSupply = maxSupplies[id];
+
+		if (biddersLenght < _maxSupply) {
+			bidders[id].push(tmp);
+			if ((biddersLenght + 1) == _maxSupply) {
+				insertionSort(id);
+				unchecked {
+					minPrices[id] = bidders[id][0].amount + (bidders[id][0].amount * 5) / 100;
 				}
 			}
-		}
-
-		if (biddersLenght < maxSupplies[id]) {
-			bidders[id].push(tmp);
 		} else {
-			unchecked {
-				claimable[tmp.wallet][id] -= 1;
-			}
-			if (!usd.transfer(tmp.wallet, tmp.amount)) revert usdTransferFailed();
-		}
+			insertionSort(id);
+			Bidder memory lowestBidder = bidders[id][0];
+			if (tmp.amount > lowestBidder.amount) {
+				unchecked {
+					claimable[lowestBidder.wallet][id] -= 1;
+					bidders[id][0] = tmp;
 
-		if (bidders[id].length == maxSupplies[id]) {
-			unchecked {
-				uint256 increment = (bidders[id][bidders[id].length - 1].amount * 5) / 100;
-				minPrices[id] = bidders[id][bidders[id].length - 1].amount + increment;
+					minPrices[id] = bidders[id][1].amount + (bidders[id][1].amount * 5) / 100;
+				}
+				if (!usd.transfer(lowestBidder.wallet, lowestBidder.amount)) revert usdTransferFailed();
+			} else {
+				unchecked {
+					claimable[tmp.wallet][id] -= 1;
+					minPrices[id] = lowestBidder.amount + (lowestBidder.amount * 5) / 100;
+				}
+				if (!usd.transfer(tmp.wallet, tmp.amount)) revert usdTransferFailed();
+			}
+		}
+	}
+
+	function insertionSort(uint256 id) internal {
+		unchecked {
+			uint256 length = bidders[id].length;
+			uint256 j;
+			for (uint256 i = 1; i < length; i++) {
+				Bidder memory key = bidders[id][i];
+				j = i - 1;
+				while ((int256(j) >= 0) && (bidders[id][j].amount > key.amount)) {
+					bidders[id][j + 1] = bidders[id][j];
+					j--;
+				}
+				bidders[id][j + 1] = key;
 			}
 		}
 	}

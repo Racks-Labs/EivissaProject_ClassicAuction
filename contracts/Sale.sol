@@ -23,7 +23,7 @@ contract Sale is System {
 
 	function buy(uint256 id) public isNotPaused onlyHolder isWhitelisted {
 		if (id >= 3) revert invalidIndex();
-		require(currentSupply[id] < maxSupplies[id]);
+		if (currentSupply[id] >= maxSupplies[id]) revert noTokensLeftErr();
 		require(!userMints[msg.sender]);
 
 		unchecked {
