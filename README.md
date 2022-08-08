@@ -2,10 +2,11 @@
 
 # Gas Report Comparation
 
-![plot](./Gas%20Report/EIVISSA%20PREVIOUS%20GAS%20REPORT.png)
-![plot](./Gas%20Report/EIVISSA%20IMPROVED%20GAS%20REPORT.png)
-<!-- ![alt text](https://github.com/synner7forever/[EivissaProject_ClassicAuction]/blob/master/Gas%20Report/EIVISSA%20PREVIOUS%20GAS%20REPORT.png?raw=true)
-![alt text](https://github.com/synner7forever/[EivissaProject_ClassicAuction]/blob/master/Gas%20Report/EIVISSA%20IMPROVED%20GAS%20REPORT.png?raw=true) -->
+<!-- ![plot](./Gas%20Report/EIVISSA%20PREVIOUS%20GAS%20REPORT.png)
+![plot](./Gas%20Report/EIVISSA%20IMPROVED%20GAS%20REPORT.png) -->
+<img src="Gas Report/EIVISSA PREVIOUS GAS REPORT.png" width="300"/>
+<img src="Gas Report/EIVISSA IMPROVED GAS REPORT.png" width="300"/>
+
 
 # Static Analisys with Slither
 
