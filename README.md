@@ -2,11 +2,9 @@
 
 # Gas Report Comparation
 
-<!-- ![plot](./Gas%20Report/EIVISSA%20PREVIOUS%20GAS%20REPORT.png)
-![plot](./Gas%20Report/EIVISSA%20IMPROVED%20GAS%20REPORT.png) -->
-<img src="Gas Report/EIVISSA PREVIOUS GAS REPORT.png" width="300"/>
-<img src="Gas Report/EIVISSA IMPROVED GAS REPORT.png" width="300"/>
-
+Previous                                                 |                                               Improved
+:-------------------------------------------------------:|:-------------------------------------------------------:
+<img src="Gas Report/EIVISSA PREVIOUS GAS REPORT.png"/>  |  <img src="Gas Report/EIVISSA IMPROVED GAS REPORT.png"/>
 
 # Static Analisys with Slither
 
