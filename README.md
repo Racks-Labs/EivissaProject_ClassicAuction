@@ -13,14 +13,16 @@ npx run slither
 ```
 ## Reporte:
 
-<span style="color:red;">
-Auction.bid(uint256,uint256) (contracts/Auction.sol#31-39) ignores return value by usd.transferFrom(msg.sender,address(this),price) (contracts/Auction.sol#36)
-Auction.addBidder(address,uint256,uint256) (contracts/Auction.sol#63-89) ignores return value by usd.transfer(tmp.wallet,tmp.amount) (contracts/Auction.sol#82)
-EivissaProject.withdraw() (contracts/EivissaProject.sol#175-179) ignores return value by usd.transfer(owner(),usd.balanceOf(address(this))) (contracts/EivissaProject.sol#176)
-Sale.buy(uint256) (contracts/Sale.sol#30-41) ignores return value by usd.transferFrom(msg.sender,address(eivissa),minPrices[id]) (contracts/Sale.sol#35)
-System.finish() (contracts/System.sol#69-72) ignores return value by usd.transfer(address(eivissa),usd.balanceOf(address(this))) (contracts/System.sol#71)
-Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unchecked-transfer
-</span>
+```html
+        <span style="color:red;">
+        Auction.bid(uint256,uint256) (contracts/Auction.sol#31-39) ignores return value by usd.transferFrom(msg.sender,address(this),price) (contracts/Auction.sol#36)
+        Auction.addBidder(address,uint256,uint256) (contracts/Auction.sol#63-89) ignores return value by usd.transfer(tmp.wallet,tmp.amount) (contracts/Auction.sol#82)
+        EivissaProject.withdraw() (contracts/EivissaProject.sol#175-179) ignores return value by usd.transfer(owner(),usd.balanceOf(address(this))) (contracts/EivissaProject.sol#176)
+        Sale.buy(uint256) (contracts/Sale.sol#30-41) ignores return value by usd.transferFrom(msg.sender,address(eivissa),minPrices[id]) (contracts/Sale.sol#35)
+        System.finish() (contracts/System.sol#69-72) ignores return value by usd.transfer(address(eivissa),usd.balanceOf(address(this))) (contracts/System.sol#71)
+        Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unchecked-transfer
+        </span>
+```
 
 <span style="color:yellow;">
 System.onlyHolder() (contracts/System.sol#40-44) uses a dangerous strict equality:
