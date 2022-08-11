@@ -5,7 +5,7 @@ import "./System.sol";
 
 contract Sale is System {
 	uint256[3] public currentSupply;
-	mapping(address => bool) public userMints;
+	mapping(address => bool) private userMints;
 
 	event saleEvent(address sender, uint256 id);
 

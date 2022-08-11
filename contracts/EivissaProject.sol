@@ -25,8 +25,8 @@ import "./Err.sol";
 //                                                                 └────────┘
 
 contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
-	address public royaltyWallet;
-	uint256[3] public royalties;
+	address private royaltyWallet;
+	uint256[3] private royalties;
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
 	IMRC immutable mrc;
@@ -173,6 +173,14 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	function setRoyaltyInfo(uint256[3] memory royalties_, address royaltyWallet_) external onlyOwner {
 		royalties = royalties_;
 		royaltyWallet = royaltyWallet_;
+	}
+
+	function royaltyInfo(uint256 tokenId, uint256 salePrice)
+		external
+		view
+		returns (address receiver, uint256 royaltyAmount)
+	{
+		return (royaltyWallet, (salePrice * royalties[tokenId]) / 100);
 	}
 
 	function withdraw() external onlyOwner {
