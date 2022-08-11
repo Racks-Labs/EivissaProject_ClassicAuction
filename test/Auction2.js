@@ -47,8 +47,11 @@ describe("Auction2 Test", async function () {
 
 	describe("exceptions", () => {
 		it("should revert if user not whitelisted", async () => {
-			await expect(saleContract.buy(0)).to.be.revertedWith("whitelistErr");
-			await expect(auctionContract.connect(acc2).bid(0, 100)).to.be.revertedWith("whitelistErr");
+			await expect(saleContract.buy(0)).to.be.revertedWithCustomError(saleContract, "whitelistErr");
+			await expect(auctionContract.connect(acc2).bid(0, 100)).to.be.revertedWithCustomError(
+				auctionContract,
+				"whitelistErr"
+			);
 			await auctionContract.addToWhitelist([acc1.address, acc2.address]);
 			await saleContract.addToWhitelist([acc2.address]);
 			await expect(auctionContract.connect(acc2).bid(0, 100)).to.be.revertedWith("ERC20: insufficient allowance");
@@ -77,16 +80,10 @@ describe("Auction2 Test", async function () {
 				addrs[1].address,
 			]);
 
-			await auctionContract.connect(acc1).bid(0, 100);
-			await auctionContract.connect(acc2).bid(0, 100);
+			await auctionContract.connect(acc1).bid(0, 105);
+			await auctionContract.connect(acc2).bid(0, 110);
 			await auctionContract.connect(addrs[0]).bid(0, 100);
-			await auctionContract.connect(addrs[1]).bid(0, 100);
-
-			// check range has been added correctly
-			expect(await auctionContract.getRank(0, acc1.address)).to.be.equal(0);
-			expect(await auctionContract.getRank(0, acc2.address)).to.be.equal(1);
-			expect(await auctionContract.getRank(0, addrs[0].address)).to.be.equal(2);
-			expect(await auctionContract.getRank(0, addrs[1].address)).to.be.equal(3);
+			await auctionContract.connect(addrs[1]).bid(0, 108);
 
 			// check minPrice of id has been updated correctly
 			expect(await auctionContract.minPrices(0)).to.be.equal(105);
@@ -94,10 +91,7 @@ describe("Auction2 Test", async function () {
 			// check that usd is transfered back to user outbid
 			expect(await auctionContract.bid(0, 105))
 				.to.emit(usdc, "Transfer")
-				.withArgs(auctionContract.address, acc1.address, 100);
-
-			//check new bidder has correct possition
-			expect(await auctionContract.getRank(0, deployer.address)).to.be.equal(0);
+				.withArgs(auctionContract.address, acc1.address, 105);
 
 			// bid left ranges
 			await auctionContract.connect(addrs[1]).bid(1, 200);
@@ -105,12 +99,12 @@ describe("Auction2 Test", async function () {
 			await auctionContract.connect(acc1).bid(2, 300);
 
 			// check auction contract has received the correct usdc amount
-			expect(await usdc.balanceOf(auctionContract.address)).to.be.equal(1105);
+			expect(await usdc.balanceOf(auctionContract.address)).to.be.equal(1128);
 
 			// finish auction + send balance to eivissa
 			expect(await auctionContract.finish())
-				.to.emit(usdc, "Transfet")
-				.withArgs(auctionContract.address, eivissaContract.address, 1105);
+				.to.emit(usdc, "Transfer")
+				.withArgs(auctionContract.address, eivissaContract.address, 1128);
 
 			// claim nfts foreach user
 			await auctionContract.connect(acc1).claim(0);

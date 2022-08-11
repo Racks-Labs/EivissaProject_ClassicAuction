@@ -22,7 +22,13 @@ describe("Sale Test", async function () {
 			(await mrcContract.setWhitelistPhase()).wait();
 
 			const Eivissa = await ethers.getContractFactory("EivissaProject");
-			eivissaContract = await Eivissa.deploy("uri/", mrcContract.address, usdcContract.address, [6, 4, 2], [200, 500, 1000]);
+			eivissaContract = await Eivissa.deploy(
+				"uri/",
+				mrcContract.address,
+				usdcContract.address,
+				[6, 4, 2],
+				[200, 500, 1000]
+			);
 			eivissaContract.deployed();
 		});
 		it("Should deploy a sale", async () => {
@@ -45,30 +51,28 @@ describe("Sale Test", async function () {
 
 	describe("Minting", () => {
 		it("Should revert", async () => {
-			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("pausedErr");
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWithCustomError(saleContract, "pausedErr");
 			(await saleContract.playPause()).wait();
 
-			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("holderErr");
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWithCustomError(saleContract, "holderErr");
 			(await mrcContract.connect(acc1).mint(1)).wait();
 
-			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("whitelistErr");
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWithCustomError(saleContract, "whitelistErr");
 			(await saleContract.switchWhitelist()).wait();
-			//const whitelistEnabled = (await saleContract.whitelistEnabled()).toString();
-			//console.log(whitelistEnabled);
-			//(await saleContract.addToWhitelist([acc1.address])).wait();
 
+			(await eivissaContract.playPause()).wait();
 			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("ERC20: insufficient allowance");
+
+			(await eivissaContract.playPause()).wait();
 			(await usdcContract.connect(acc1).approve(saleContract.address, 800)).wait();
 			(await usdcContract.connect(acc2).approve(saleContract.address, 800)).wait();
-			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWith("pausedErr");
+			await expect(saleContract.connect(acc1).buy(0)).to.be.revertedWithCustomError(saleContract, "pausedErr");
 			(await eivissaContract.playPause()).wait();
 		});
 		it("Should buy and override buy", async () => {
 			let transaction = await saleContract.connect(acc1).buy(0);
 			const balanceOfAcc1 = await eivissaContract.balanceOf(acc1.address, 0);
 			expect(balanceOfAcc1.toString()).to.be.equal("1");
-
-
 		});
 		/*
 		it("Should revert", async () => {

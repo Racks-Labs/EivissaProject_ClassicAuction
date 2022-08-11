@@ -22,15 +22,15 @@ import "./Err.sol";
 // ▟███████████████     ▜██████▙      ▟█████▛   ▟██████▛   ▟█████████████████████▙
 //                        ▜██████▙            ▟██████▛          ┌────────┐
 //                          ▜██████▙        ▟██████▛            │  LABS  │
-//                                                              └────────┘
+//                                                                 └────────┘
 
 contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
-	address royaltyWallet;
-	uint256[3] royalties;
+	address private royaltyWallet;
+	uint256[3] private royalties;
 	uint256[3] public maxSupplies;
 	uint256[3] public minPrices;
-	IMRC mrc;
-	IERC20 usd;
+	IMRC immutable mrc;
+	IERC20 immutable usd;
 	bool public paused = true;
 	bool public transferible = true;
 	mapping(address => bool) public isCollab;
@@ -41,26 +41,22 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	string public baseURI;
 
 	modifier isNotPaused() {
-		if (isAdmin[msg.sender] == false && paused == true)
-			revert pausedErr();
+		if (!isAdmin[msg.sender] && paused) revert pausedErr();
 		_;
 	}
 
 	modifier isWhitelisted() {
-		if (whitelist[msg.sender] == false)
-			revert whitelistErr();
+		if (!whitelist[msg.sender]) revert whitelistErr();
 		_;
 	}
 
 	modifier isTransferible() {
-		if (transferible == false || isCollab[msg.sender] == true)
-			revert transferibleErr();
+		if (!transferible || isCollab[msg.sender]) revert transferibleErr();
 		_;
 	}
 
 	modifier onlyAdmin() {
-		if (isAdmin[msg.sender] == false)
-			revert adminErr();
+		if (!isAdmin[msg.sender]) revert adminErr();
 		_;
 	}
 
@@ -84,14 +80,17 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	}
 
 	//Note: Mint using USDC
-	function mint(address to, uint256 id, uint256 amount) public override isNotPaused isWhitelisted {
-		require(totalSupply(id) < maxSupplies[id], "Id no tokens left");
+	function mint(
+		address to,
+		uint256 id,
+		uint256 amount
+	) public override isNotPaused isWhitelisted {
+		if (totalSupply(id) >= maxSupplies[id]) revert noTokensLeftErr();
 		_mint(to, id, amount, "");
 	}
 
 	function newSale(uint256[3] memory supplies, string memory name) external onlyAdmin {
-		for (uint256 i = 0; i < 3; ++i)
-			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "Exceeds MaxSupply");
+		checkSupplies(supplies);
 		Sale sale = new Sale(this, supplies, minPrices, name, mrc, usd, owner());
 		sales.push(sale);
 		whitelist[address(sale)] = true;
@@ -99,55 +98,63 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 	}
 
 	function newAuction(uint256[3] memory supplies, string memory name) external onlyAdmin {
-		for (uint256 i = 0; i < 3; ++i)
-			require(totalSupply(i) + supplies[i] <= maxSupplies[i], "Exceeds MaxSupply");
+		checkSupplies(supplies);
 		Auction auction = new Auction(this, supplies, minPrices, name, mrc, usd, owner());
 		auctions.push(auction);
 		whitelist[address(auction)] = true;
 		emit newAuctionEvent(address(auction));
 	}
 
-	function totalSales() public view returns(uint256) {
+	function checkSupplies(uint256[3] memory supplies) private view {
+		unchecked {
+			for (uint256 i = 0; i < 3; ++i) if (totalSupply(i) + supplies[i] > maxSupplies[i]) revert noTokensLeftErr();
+		}
+	}
+
+	function totalSales() external view returns (uint256) {
 		return sales.length;
 	}
 
-	function totalAuctions() public view returns(uint256) {
+	function totalAuctions() external view returns (uint256) {
 		return auctions.length;
 	}
 
-	function playPause() public onlyAdmin {
+	function playPause() external onlyAdmin {
 		paused = !paused;
 	}
 
-	function switchTransferible() public onlyOwner {
+	function switchTransferible() external onlyOwner {
 		transferible = !transferible;
 	}
 
-	function addAdmin(address new_) public onlyOwner {
+	function addAdmin(address new_) external onlyOwner {
 		isAdmin[new_] = true;
 	}
 
-	function removeAdmin(address new_) public onlyOwner {
+	function removeAdmin(address new_) external onlyOwner {
 		isAdmin[new_] = false;
 	}
 
-	function addToWhitelist(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i)
-			whitelist[newOnes[i]] = true;
+	function addToWhitelist(address[] memory newOnes) external onlyAdmin {
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = true;
+		}
 	}
 
-	function removeFromWhitelist(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i)
-			whitelist[newOnes[i]] = false;
+	function removeFromWhitelist(address[] memory newOnes) external onlyAdmin {
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) whitelist[newOnes[i]] = false;
+		}
 	}
 
-	function addCollab(address[] memory newOnes) public onlyAdmin {
-		for (uint256 i = 0; i < newOnes.length; ++i)
-			isCollab[newOnes[i]] = true;
+	function addCollab(address[] memory newOnes) external onlyAdmin {
+		unchecked {
+			for (uint256 i = 0; i < newOnes.length; ++i) isCollab[newOnes[i]] = true;
+		}
 	}
 
 	function uri(uint256 _id) public view override returns (string memory) {
-		require(exists(_id), "URI: nonexistent token");
+		if (!exists(_id)) revert nonexistentTokenURI();
 		return string(abi.encodePacked(baseURI, "/", Strings.toString(_id), ".json"));
 	}
 
@@ -159,17 +166,8 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		maxSupplies = maxSupplies_;
 	}
 
-	function setMinPrices(uint256 [3] memory minPrices_) external onlyOwner {
+	function setMinPrices(uint256[3] memory minPrices_) external onlyOwner {
 		minPrices = minPrices_;
-	}
-
-	function royaltyInfo(uint256 tokenId, uint256 salePrice)
-		external
-		view
-		returns (address receiver, uint256 royaltyAmount)
-	{
-		royaltyAmount = (salePrice * royalties[tokenId]) / 100;
-		return (royaltyWallet, royaltyAmount);
 	}
 
 	function setRoyaltyInfo(uint256[3] memory royalties_, address royaltyWallet_) external onlyOwner {
@@ -177,10 +175,18 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		royaltyWallet = royaltyWallet_;
 	}
 
-	function withdraw() public onlyOwner {
-		usd.transfer(owner(), usd.balanceOf(address(this)));
+	function royaltyInfo(uint256 tokenId, uint256 salePrice)
+		external
+		view
+		returns (address receiver, uint256 royaltyAmount)
+	{
+		return (royaltyWallet, (salePrice * royalties[tokenId]) / 100);
+	}
+
+	function withdraw() external onlyOwner {
+		if (!usd.transfer(owner(), usd.balanceOf(address(this)))) revert usdTransferFailed();
 		(bool success, ) = owner().call{value: address(this).balance}("");
-		require(success, "failed");
+		if (!success) revert withdrawFailed();
 	}
 
 	//FUNCTION OVERRIDING
@@ -192,10 +198,8 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		uint256 amount,
 		bytes memory data
 	) public virtual override isTransferible {
-		require(
-			from == _msgSender() || isApprovedForAll(from, _msgSender()),
-			"ERC1155: caller is not owner nor approved"
-		);
+		if (from != _msgSender() && !isApprovedForAll(from, _msgSender()))
+			revert ERC1155CallerNotOwnerNorApproved(_msgSender());
 		_safeTransferFrom(from, to, id, amount, data);
 	}
 
@@ -206,10 +210,8 @@ contract EivissaProject is Ownable, ERC1155Supply, IEivissaProject {
 		uint256[] memory amounts,
 		bytes memory data
 	) public virtual override isTransferible {
-		require(
-			from == _msgSender() || isApprovedForAll(from, _msgSender()),
-			"ERC1155: transfer caller is not owner nor approved"
-		);
+		if (from != _msgSender() && !isApprovedForAll(from, _msgSender()))
+			revert ERC1155CallerNotOwnerNorApproved(_msgSender());
 		_safeBatchTransferFrom(from, to, ids, amounts, data);
 	}
 
